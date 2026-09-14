@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ntalasha Architects — erthdot cms manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black:   #0a0a0a;
+  --gray-90: #111111;
+  --gray-80: #1e1e1e;
+  --gray-70: #2a2a2a;
+  --gray-60: #3a3a3a;
+  --gray-50: #4e4e4e;
+  --gray-40: #6b6b6b;
+  --gray-30: #8a8a8a;
+  --gray-20: #b0b0b0;
+  --gray-10: #d8d8d8;
+  --white:   #f5f5f3;
+  --gold:    #4caf8a;
+  --gold-dim:#2d7a5e;
+  --danger:  #c0392b;
+  --success: #27ae60;
+  --warn:    #c47d1c;
+}
+
+html, body { height: 100%; background: var(--black); color: var(--white); font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 300; line-height: 1.6; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--gray-90); }
+::-webkit-scrollbar-thumb { background: var(--gray-60); border-radius: 3px; }
+
+#sidebar { width: 220px; min-width: 220px; background: var(--gray-90); border-right: 1px solid var(--gray-70); display: flex; flex-direction: column; overflow-y: auto; }
+
+.sidebar-brand { padding: 20px 20px 14px; border-bottom: 1px solid var(--gray-70); }
+.sidebar-brand-main { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 400; color: var(--white); letter-spacing: 0.08em; }
+.sidebar-brand-sub { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-top: 3px; }
+
+.sidebar-section-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-40); padding: 14px 20px 5px; }
+
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 20px; cursor: pointer; color: var(--gray-20); font-size: 12px; transition: color 0.15s, background 0.15s; border-left: 2px solid transparent; user-select: none; }
+.nav-item:hover { background: var(--gray-80); color: var(--white); }
+.nav-item.active { background: var(--gray-80); color: var(--white); border-left-color: var(--gold); }
+.nav-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+
+.sidebar-footer { margin-top: auto; padding: 12px 20px; border-top: 1px solid var(--gray-70); font-size: 10px; color: var(--gray-40); }
+
+#main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+#topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid var(--gray-70); background: var(--gray-90); flex-shrink: 0; }
+.topbar-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 300; color: var(--white); }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn { padding: 7px 14px; font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 400; letter-spacing: 0.06em; cursor: pointer; border-radius: 2px; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; border: none; }
+.btn-outline { background: transparent; border: 1px solid var(--gray-60); color: var(--gray-20); }
+.btn-outline:hover { border-color: var(--gray-30); color: var(--white); }
+.btn-gold { background: transparent; border: 1px solid var(--gold-dim); color: var(--gold); }
+.btn-gold:hover { background: var(--gold-dim); color: var(--white); }
+.btn-danger { background: transparent; border: 1px solid #7a2020; color: #e57373; }
+.btn-danger:hover { background: #7a2020; color: var(--white); }
+
+#content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.folder-picker-zone { border: 1px dashed var(--gray-60); border-radius: 4px; padding: 24px; text-align: center; margin-bottom: 20px; cursor: pointer; transition: border-color 0.2s, background 0.15s; }
+.folder-picker-zone:hover { border-color: var(--gold-dim); background: rgba(76,175,138,0.03); }
+.folder-picker-zone.has-path { border-style: solid; border-color: var(--success); }
+.folder-path-display { font-size: 11px; color: var(--success); margin-top: 8px; word-break: break-all; }
+
+.badge { display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.badge-ok   { background: #1a3a25; color: #5dba7d; border: 1px solid #2e6b43; }
+.badge-miss { background: #3a1a1a; color: #e57373; border: 1px solid #7a2020; }
+.badge-warn { background: #3a2e1a; color: #e0a040; border: 1px solid #7a5a1a; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.card { background: var(--gray-90); border: 1px solid var(--gray-70); border-radius: 4px; overflow: hidden; }
+.card-header { padding: 10px 14px; border-bottom: 1px solid var(--gray-70); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gray-40); display: flex; align-items: center; justify-content: space-between; }
+.card-body { padding: 14px; }
+
+.asset-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--gray-70); }
+.asset-row:last-child { border-bottom: none; }
+.asset-thumb { width: 52px; height: 38px; border-radius: 2px; background: var(--gray-80); border: 1px solid var(--gray-60); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--gray-40); overflow: hidden; flex-shrink: 0; cursor: pointer; transition: border-color 0.15s; }
+.asset-thumb:hover { border-color: var(--gold-dim); }
+.asset-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.asset-thumb.glb-thumb { font-size: 16px; }
+.asset-info { flex: 1; min-width: 0; }
+.asset-name { font-size: 11px; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asset-desc { font-size: 10px; color: var(--gray-40); margin-top: 1px; }
+.asset-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.text-field-group { margin-bottom: 16px; }
+.field-label { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gray-40); margin-bottom: 5px; display: block; }
+.field-hint { font-size: 10px; color: var(--gray-50); margin-top: 4px; }
+
+input[type="text"], input[type="email"], input[type="tel"], textarea, select {
+  width: 100%; background: var(--gray-80); border: 1px solid var(--gray-60); color: var(--white);
+  font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 300; padding: 7px 10px;
+  border-radius: 2px; outline: none; transition: border-color 0.15s; resize: vertical;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--gold-dim); }
+input[type="file"] { display: none; }
+
+#preview-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; }
+#preview-modal.open { display: flex; }
+.preview-inner { background: var(--gray-80); border: 1px solid var(--gray-60); border-radius: 4px; padding: 18px; max-width: 600px; width: 90%; }
+.preview-inner img, .preview-inner video { width: 100%; border-radius: 2px; margin-bottom: 10px; }
+
+#toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 8px; z-index: 99999; pointer-events: none; }
+.toast { background: var(--gray-70); border: 1px solid var(--gray-50); border-left: 3px solid var(--gold); padding: 9px 14px; border-radius: 2px; font-size: 12px; color: var(--white); animation: slide-in 0.22s ease; max-width: 320px; }
+.toast.toast-ok { border-left-color: var(--success); }
+.toast.toast-err { border-left-color: var(--danger); }
+@keyframes slide-in { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.divider { border: none; border-top: 1px solid var(--gray-70); margin: 18px 0; }
+.status-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--gray-80); }
+.status-row:last-child { border-bottom: none; }
+.status-icon { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.status-icon.ok   { background: var(--success); }
+.status-icon.miss { background: var(--danger); }
+.status-icon.warn { background: var(--warn); }
+
+#diff-output { background: var(--gray-80); border: 1px solid var(--gray-60); border-radius: 3px; padding: 12px; font-size: 11px; line-height: 1.8; max-height: 300px; overflow-y: auto; white-space: pre-wrap; color: var(--gray-20); display: none; }
+.diff-added   { color: #6fcf8a; }
+.diff-removed { color: #e57373; }
+.diff-neutral { color: var(--gray-40); }
+
+.progress-bar { height: 3px; background: var(--gray-70); border-radius: 2px; margin: 8px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gold); border-radius: 2px; transition: width 0.4s ease; }
+
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; color: var(--white); margin-bottom: 5px; }
+.section-desc { font-size: 11px; color: var(--gray-40); margin-bottom: 20px; line-height: 1.7; }
+.inline-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+/* Chrome File System Access banner */
+#fsa-banner { background: rgba(76,175,138,0.08); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 10px 14px; margin-bottom: 16px; font-size: 11px; color: var(--gold); display: flex; align-items: center; gap: 10px; }
+#fsa-banner svg { flex-shrink: 0; }
+
+/* Save-to-disk status */
+.save-status { font-size: 10px; color: var(--gray-40); margin-top: 6px; }
+.save-status.ok { color: var(--success); }
+
+/* Highlight note */
+.note-box { background: var(--gray-80); border-left: 2px solid var(--gold-dim); padding: 10px 14px; font-size: 11px; color: var(--gray-30); line-height: 1.7; margin-bottom: 14px; border-radius: 0 2px 2px 0; }
+
+/* ── EDITING MODE BANNER ── */
+#editing-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 99999;
+  height: 3px;
+  background: linear-gradient(90deg, #c0392b 0%, #e74c3c 40%, #ff6b6b 60%, #c0392b 100%);
+  background-size: 200% 100%;
+  animation: banner-shimmer 2.5s linear infinite;
+  box-shadow: 0 0 12px rgba(192,57,43,0.6);
+}
+#editing-label {
+  position: fixed; top: 3px; left: 50%; transform: translateX(-50%);
+  z-index: 99998;
+  background: #c0392b;
+  color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  padding: 3px 14px 3px;
+  border-radius: 0 0 4px 4px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+@keyframes banner-shimmer {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* ── APP SPLIT WITH PREVIEW ── */
+#app { display: flex; height: 100vh; overflow: hidden; padding-top: 3px; }
+
+/* ── PREVIEW PANEL ── */
+#preview-panel {
+  width: 0;
+  min-width: 0;
+  flex-shrink: 0;
+  background: var(--black);
+  border-left: 1px solid var(--gray-70);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.35s cubic-bezier(.4,0,.2,1), min-width 0.35s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+#preview-panel.open {
+  width: 520px;
+  min-width: 320px;
+}
+#preview-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--gray-70);
+  flex-shrink: 0;
+  background: var(--gray-90);
+  gap: 8px;
+}
+#preview-panel-title {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gray-40);
+  white-space: nowrap;
+}
+.preview-section-pill {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(76,175,138,0.08);
+  border: 1px solid var(--gold-dim);
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+#preview-section-name { font-size: 9px; color: var(--gold); letter-spacing: 0.12em; text-transform: uppercase; }
+#preview-frame-wrap {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--black);
+}
+#preview-frame {
+  width: 1280px;
+  height: 100%;
+  border: none;
+  transform-origin: top left;
+  display: block;
+  background: #0a0a0a;
+  pointer-events: none;
+}
+#preview-loading {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px;
+  background: var(--black);
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+#preview-loading.hidden { opacity: 0; pointer-events: none; }
+.preview-spinner {
+  width: 28px; height: 28px;
+  border: 2px solid var(--gray-70);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#preview-no-content {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 16px; padding: 24px; text-align: center;
+}
+#preview-no-content svg { color: var(--gray-60); }
+
+/* make-live button */
+.btn-live {
+  background: transparent;
+  border: 1px solid #c0392b;
+  color: #e57373;
+  animation: live-pulse 2.5s ease-in-out infinite;
+}
+.btn-live:hover { background: #c0392b; color: var(--white); }
+@keyframes live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,0); }
+  50% { box-shadow: 0 0 0 4px rgba(192,57,43,0.18); }
+}
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #e57373;
+  animation: dot-blink 1.4s ease-in-out infinite;
+}
+.btn-live:hover .live-dot { background: var(--white); }
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+/* preview toggle button */
+.btn-preview-toggle {
+  background: transparent;
+  border: 1px solid var(--gray-60);
+  color: var(--gray-30);
+  white-space: nowrap;
+}
+.btn-preview-toggle:hover, .btn-preview-toggle.active {
+  border-color: var(--gold-dim);
+  color: var(--gold);
+}
+.btn-preview-toggle.active {
+  background: rgba(76,175,138,0.06);
+}
+
+/* section highlight overlay in preview */
+.preview-highlight-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--gold);
+  opacity: 0; transition: opacity 0.3s;
+}
+#preview-panel.open .preview-highlight-bar { opacity: 1; }
+
+/* live modal overlay */
+#live-modal {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 99999; align-items: center; justify-content: center;
+}
+#live-modal.open { display: flex; }
+.live-modal-inner {
+  background: var(--gray-90);
+  border: 1px solid var(--gray-60);
+  border-top: 3px solid #c0392b;
+  border-radius: 4px;
+  padding: 28px 32px;
+  max-width: 480px; width: 90%;
+  text-align: center;
+}
+.live-modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 300;
+  color: var(--white); margin-bottom: 8px;
+}
+.live-modal-sub { font-size: 11px; color: var(--gray-40); line-height: 1.8; margin-bottom: 24px; }
+.live-modal-actions { display: flex; gap: 10px; justify-content: center; }
+</style>
+</head>
+<body>
+
+<div id="editing-banner"></div>
+<div id="editing-label">● Editing Mode</div>
+
+<!-- Make Live Modal -->
+<div id="live-modal" onclick="closeLiveModal()">
+  <div class="live-modal-inner" onclick="event.stopPropagation()">
+    <div class="live-modal-title">Make Website Live?</div>
+    <div class="live-modal-sub">
+      This will export all your changes and package them for deployment.<br>
+      Make sure you've previewed your edits before publishing.
+    </div>
+    <div style="margin-bottom:20px;">
+      <div id="live-export-progress" class="progress-bar" style="display:none;"><div class="progress-fill" id="live-progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="live-modal-actions">
+      <button class="btn btn-outline" onclick="closeLiveModal()">Cancel</button>
+      <button class="btn" style="background:#c0392b;color:#fff;border:none;" onclick="goLive()">
+        <div class="live-dot"></div> Export &amp; Go Live
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- ── Sidebar ── -->
+  <div id="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-main">Ntalasha Architects</div>
+      <div class="sidebar-brand-sub">erthdot cms manager</div>
+    </div>
+
+    <div class="sidebar-section-label">Content</div>
+    <div class="nav-item active" onclick="switchTab('dashboard')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="switchTab('text')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h10"/></svg>
+      Text &amp; Copy
+    </div>
+    <div class="nav-item" onclick="switchTab('images')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="12" rx="1.5"/><path d="M1 11l4-4 3 3 2-2 5 5"/><circle cx="11.5" cy="5.5" r="1.5"/></svg>
+      Images
+    </div>
+    <div class="nav-item" onclick="switchTab('video')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="10" height="10" rx="1.5"/><path d="M11 6l4-2v8l-4-2"/></svg>
+      Video
+    </div>
+    <div class="nav-item" onclick="switchTab('models')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1l7 4v6l-7 4-7-4V5z"/><path d="M8 1v14M1 5l7 4 7-4"/></svg>
+      3D Models
+    </div>
+    <div class="nav-item" onclick="switchTab('sound')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6H1v4h2l4 3V3L3 6z"/><path d="M11 5a4 4 0 010 6"/><path d="M13 3a7 7 0 010 10"/></svg>
+      Scroll Sound
+    </div>
+    <div class="nav-item" onclick="switchTab('branding')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M5 8h6M8 5v6"/></svg>
+      Logo &amp; Favicon
+    </div>
+
+    <div class="sidebar-section-label">Export</div>
+    <div class="nav-item" onclick="switchTab('export')">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v9M5 7l3 3 3-3"/><path d="M2 12v2h12v-2"/></svg>
+      Apply &amp; Export
+    </div>
+
+    <div class="sidebar-footer">
+      <div style="color:var(--gold); margin-bottom:2px;">erthdot</div>
+      v1.1 · Ntalasha Architects
+    </div>
+  </div>
+
+  <!-- ── Main ── -->
+  <div id="main">
+    <div id="topbar">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-preview-toggle" id="preview-toggle-btn" onclick="togglePreviewPanel()">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="9" height="12" rx="1"/><path d="M12 5h3M12 8h3M12 11h3"/></svg>
+          Live Preview
+        </button>
+        <button class="btn btn-outline" onclick="locateFolder()">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 4h6l2 2h6v9H1z"/></svg>
+          Locate Website Folder
+        </button>
+        <button class="btn btn-gold" onclick="switchTab('export')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v9M5 7l3 3 3-3"/><path d="M2 12v2h12v-2"/></svg>
+          Apply Changes
+        </button>
+        <button class="btn btn-live" onclick="openLiveModal()">
+          <div class="live-dot"></div>
+          Make Live
+        </button>
+      </div>
+    </div>
+
+    <div id="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="tab-dashboard" class="tab-panel active">
+        <div class="section-title">Site Overview</div>
+        <div class="section-desc">Locate your project folder to scan what's present and what's missing.</div>
+
+        <div id="fsa-banner" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M8 7v4M8 5v.5"/></svg>
+          Chrome detected — you can save files directly to disk using the "Save to Folder" buttons on the Export tab.
+        </div>
+
+        <div class="folder-picker-zone" id="folder-zone" onclick="locateFolder()">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom:8px; color:var(--gray-40);">
+            <path d="M2 6h8l2 3h10v11H2z"/>
+          </svg>
+          <div style="color:var(--gray-20); font-size:12px;">Click to select your <em>ntalasha-architects</em> project folder</div>
+          <div style="color:var(--gray-40); font-size:10px; margin-top:4px;">index.html must be inside the root of the folder</div>
+          <div class="folder-path-display" id="folder-path-display"></div>
+        </div>
+
+        <div class="grid-2" style="gap:12px;">
+          <div class="card">
+            <div class="card-header">HTML Files <span id="html-badge"></span></div>
+            <div class="card-body" id="html-status"><span style="color:var(--gray-50);font-size:11px;">Load folder to scan</span></div>
+          </div>
+          <div class="card">
+            <div class="card-header">Audio <span id="audio-badge"></span></div>
+            <div class="card-body" id="audio-status"><span style="color:var(--gray-50);font-size:11px;">Load folder to scan</span></div>
+          </div>
+          <div class="card">
+            <div class="card-header">Images (9) <span id="img-badge"></span></div>
+            <div class="card-body" id="img-status"><span style="color:var(--gray-50);font-size:11px;">Load folder to scan</span></div>
+          </div>
+          <div class="card">
+            <div class="card-header">Video <span id="vid-badge"></span></div>
+            <div class="card-body" id="vid-status"><span style="color:var(--gray-50);font-size:11px;">Load folder to scan</span></div>
+          </div>
+          <div class="card" style="grid-column:span 2;">
+            <div class="card-header">3D Models <span id="glb-badge"></span></div>
+            <div class="card-body" id="glb-status"><span style="color:var(--gray-50);font-size:11px;">Load folder to scan</span></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="font-size:11px;color:var(--gray-40);">
+          Use the sidebar to edit each section. When done, go to <strong style="color:var(--gray-20);">Apply &amp; Export</strong> to download or save your changes.
+        </div>
+      </div>
+
+      <!-- ── TEXT ── -->
+      <div id="tab-text" class="tab-panel">
+        <div class="section-title">Text &amp; Copy</div>
+        <div class="section-desc">Edit all visible text. Changes are applied when you export.</div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">Site Identity</div>
+          <div class="card-body">
+            <div class="text-field-group">
+              <label class="field-label">Site / Browser Title</label>
+              <input type="text" id="txt-title" value="Ntalasha Architects — Lusaka, Zambia">
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">Nav Logo Text</label>
+              <input type="text" id="txt-logo-text" value="Ntalasha Architects">
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">Hero Section</div>
+          <div class="card-body">
+            <div class="text-field-group">
+              <label class="field-label">Tag Line (above headline)</label>
+              <input type="text" id="txt-hero-tag" value="Architecture · Lusaka, Zambia">
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">Headline (line-break with &lt;br&gt;)</label>
+              <input type="text" id="txt-hero-h1" value="Space.&lt;br&gt;Craft.&lt;br&gt;Purpose.">
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">Sub-headline</label>
+              <textarea id="txt-hero-sub" rows="2">We design built environments that elevate daily life — from intimate residences to landmark civic structures across Zambia and beyond.</textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">About Section</div>
+          <div class="card-body">
+            <div class="text-field-group">
+              <label class="field-label">Section Heading</label>
+              <input type="text" id="txt-about-h2" value="Architecture with intention.">
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">Paragraph 1</label>
+              <textarea id="txt-about-p1" rows="3">Ntalasha Architects is a Lusaka-based studio committed to contextual design — buildings that respond to climate, culture, and community. We partner with clients from first sketch to final handover, ensuring every decision serves both beauty and utility.</textarea>
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">Paragraph 2</label>
+              <textarea id="txt-about-p2" rows="2">Our approach is collaborative, rigorous, and rooted in the belief that exceptional architecture is accessible — not a luxury reserved for the few.</textarea>
+            </div>
+            <div class="grid-2">
+              <div class="text-field-group">
+                <label class="field-label">Stat 1 — Number</label>
+                <input type="text" id="txt-stat1-num" value="80">
+              </div>
+              <div class="text-field-group">
+                <label class="field-label">Stat 1 — Label</label>
+                <input type="text" id="txt-stat1-lbl" value="Projects">
+              </div>
+              <div class="text-field-group">
+                <label class="field-label">Stat 2 — Number</label>
+                <input type="text" id="txt-stat2-num" value="12">
+              </div>
+              <div class="text-field-group">
+                <label class="field-label">Stat 2 — Label</label>
+                <input type="text" id="txt-stat2-lbl" value="Awards">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">Projects Section</div>
+          <div class="card-body" id="projects-text-editor"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Contact Section</div>
+          <div class="card-body">
+            <div class="grid-2">
+              <div class="text-field-group">
+                <label class="field-label">Phone</label>
+                <input type="tel" id="txt-contact-phone" value="+260 977 869 624">
+              </div>
+              <div class="text-field-group">
+                <label class="field-label">Email</label>
+                <input type="email" id="txt-contact-email" value="natalashaarchitect@gmail.com">
+              </div>
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">Location</label>
+              <input type="text" id="txt-contact-location" value="Lusaka, Zambia">
+            </div>
+            <div class="text-field-group">
+              <label class="field-label">WhatsApp Number (digits only, with country code)</label>
+              <input type="text" id="txt-contact-wa" value="260977869624">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── IMAGES ── -->
+      <div id="tab-images" class="tab-panel">
+        <div class="section-title">Images</div>
+        <div class="note-box">
+          Files are saved with <strong>spaces in filenames</strong> exactly as index.html expects them
+          (e.g. <code style="color:var(--gold)">hero background.jpg</code>, <code style="color:var(--gold)">project 1.jpg</code>).
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">Hero</div>
+          <div class="card-body" id="img-hero-slot"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">About — Founder Portrait</div>
+          <div class="card-body" id="img-about-slot"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">Projects (6 cards)</div>
+          <div class="card-body" id="img-projects-slot"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">Contact — Map</div>
+          <div class="card-body" id="img-contact-slot"></div>
+        </div>
+      </div>
+
+      <!-- ── VIDEO ── -->
+      <div id="tab-video" class="tab-panel">
+        <div class="section-title">Hero Video</div>
+        <div class="note-box">
+          Saved as <code style="color:var(--gold)">src/video/hero reel.mp4</code> and <code style="color:var(--gold)">src/video/hero reel.webm</code> — spaces preserved to match index.html.
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">MP4 — Primary (H.264)</div>
+          <div class="card-body" id="vid-mp4-slot"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">WebM — Fallback (VP9)</div>
+          <div class="card-body" id="vid-webm-slot"></div>
+        </div>
+
+        <div style="margin-top:16px; font-size:11px; color:var(--gray-40); line-height:1.9;">
+          <strong style="color:var(--gray-20);">Recommendations</strong><br>
+          · Duration: 8–12 seconds, seamless loop · Resolution: 1920×1080<br>
+          · H.264 bitrate: 4–6 Mbps (keep under 8 MB)<br>
+          · A CSS grayscale filter is applied automatically — shoot in colour
+        </div>
+      </div>
+
+      <!-- ── 3D MODELS ── -->
+      <div id="tab-models" class="tab-panel">
+        <div class="section-title">3D / AR Models</div>
+        <div class="note-box">
+          Upload <code style="color:var(--gold)">.glb</code> files. Saved as <code style="color:var(--gold)">ar1.glb</code>, <code style="color:var(--gold)">ar2.glb</code>, <code style="color:var(--gold)">ar3.glb</code> in the project root (where ar-viewer.html expects them).
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">ar1.glb — Residential Villa</div>
+          <div class="card-body" id="glb1-slot"></div>
+        </div>
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">ar2.glb — Corporate Headquarters</div>
+          <div class="card-body" id="glb2-slot"></div>
+        </div>
+        <div class="card">
+          <div class="card-header">ar3.glb — Mixed-Use Development</div>
+          <div class="card-body" id="glb3-slot"></div>
+        </div>
+      </div>
+
+      <!-- ── SOUND ── -->
+      <div id="tab-sound" class="tab-panel">
+        <div class="section-title">Scroll Sound</div>
+        <div class="note-box">
+          Saved as <code style="color:var(--gold)">src/sound/scroll click.mp3</code> — spaces preserved to match index.html.<br>
+          A built-in Web Audio synth fires automatically if the file is missing.
+        </div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">scroll click.mp3</div>
+          <div class="card-body" id="sound-slot"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Sound Parameters</div>
+          <div class="card-body">
+            <div class="grid-2">
+              <div class="text-field-group">
+                <label class="field-label">Volume (0.0 – 1.0)</label>
+                <input type="text" id="snd-volume" value="0.22">
+                <div class="field-hint">0.22 = 22% — default</div>
+              </div>
+              <div class="text-field-group">
+                <label class="field-label">Trigger Delay (ms)</label>
+                <input type="text" id="snd-delay" value="40">
+                <div class="field-hint">Wait after scroll stops</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BRANDING ── -->
+      <div id="tab-branding" class="tab-panel">
+        <div class="section-title">Logo &amp; Favicon</div>
+        <div class="section-desc">Upload your logo and favicon. The logo replaces the text in the nav bar.</div>
+
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header">Logo</div>
+          <div class="card-body">
+            <div class="asset-row">
+              <div class="asset-thumb" id="logo-thumb" onclick="triggerFile('logo-file')" title="Click to upload logo">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+              </div>
+              <div class="asset-info">
+                <div class="asset-name" id="logo-name">No logo uploaded</div>
+                <div class="asset-desc">Saved as <code>src/images/logo.png</code> · Recommended: SVG or transparent PNG ~200×60px</div>
+              </div>
+              <div class="asset-actions">
+                <button class="btn btn-outline" onclick="triggerFile('logo-file')">Replace</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Favicon</div>
+          <div class="card-body">
+            <div class="asset-row">
+              <div class="asset-thumb" id="fav-thumb" onclick="triggerFile('fav-file')" title="Click to upload favicon" style="width:38px;height:38px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7v10l10 5 10-5V7z"/></svg>
+              </div>
+              <div class="asset-info">
+                <div class="asset-name" id="fav-name">No favicon uploaded</div>
+                <div class="asset-desc">Saved as <code>favicon.ico</code> in project root · Recommended: 32×32 or 64×64 PNG</div>
+              </div>
+              <div class="asset-actions">
+                <button class="btn btn-outline" onclick="triggerFile('fav-file')">Replace</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EXPORT ── -->
+      <div id="tab-export" class="tab-panel">
+        <div class="section-title">Apply &amp; Export</div>
+        <div class="section-desc">Write all changes to your project files.</div>
+
+        <!-- Chrome FSA option -->
+        <div id="fsa-export-section" style="display:none; margin-bottom:16px;">
+          <div class="card">
+            <div class="card-header" style="color:var(--gold);">⚡ Chrome: Save Directly to Folder (recommended)</div>
+            <div class="card-body">
+              <div style="font-size:11px; color:var(--gray-30); margin-bottom:12px; line-height:1.8;">
+                Chrome's File System Access API lets this CMS write files directly into your project folder — no ZIP, no extraction step needed.
+              </div>
+              <button class="btn btn-gold" onclick="saveToFolder()">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 4h6l2 2h6v9H1z"/></svg>
+                Pick Folder &amp; Save All Files
+              </button>
+              <div class="save-status" id="fsa-status"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">Pending Changes</div>
+          <div class="card-body" id="changes-list">
+            <div style="color:var(--gray-40);font-size:11px;">No changes yet. Edit content on the left.</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px;">
+          <div class="card-header">HTML Preview (changed fields)</div>
+          <div class="card-body">
+            <div id="diff-output"></div>
+            <button class="btn btn-outline" style="margin-top:10px;" onclick="generateDiff()">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="7"/><path d="M8 5v3l2 2"/></svg>
+              Preview Changes
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Download ZIP Package</div>
+          <div class="card-body">
+            <div style="margin-bottom:14px; font-size:11px; color:var(--gray-30); line-height:1.8;">
+              Downloads a ZIP with the modified <code style="color:var(--gold)">index.html</code> and all uploaded assets renamed to the exact paths the site expects.
+              Extract into your project folder (overwrite when asked).
+            </div>
+            <div class="progress-bar" id="export-progress-bar" style="display:none;">
+              <div class="progress-fill" id="export-progress-fill" style="width:0%"></div>
+            </div>
+            <div class="inline-row">
+              <button class="btn btn-gold" id="download-zip-btn" onclick="exportAll()">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v9M5 7l3 3 3-3"/><path d="M2 12v2h12v-2"/></svg>
+                Download ZIP
+              </button>
+              <button class="btn btn-outline" onclick="generateDiff()">Preview Changes Only</button>
+            </div>
+            <div style="margin-top:10px; font-size:10px; color:var(--gray-50);">
+              After extracting, open with <code>python3 -m http.server 8000</code> or drag into Chrome.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+
+  <!-- ── LIVE PREVIEW PANEL ── -->
+  <div id="preview-panel">
+    <div id="preview-panel-header">
+      <span id="preview-panel-title">Live Preview</span>
+      <span class="preview-section-pill" id="preview-section-name">Hero</span>
+      <div style="display:flex;gap:6px;margin-left:auto;flex-shrink:0;">
+        <button class="btn btn-outline" style="padding:4px 8px;font-size:9px;letter-spacing:0.1em;" onclick="refreshPreview()" title="Refresh preview">
+          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 8A5.5 5.5 0 112.5 5M2 2v3h3"/></svg>
+          Refresh
+        </button>
+        <button class="btn btn-outline" style="padding:4px 8px;font-size:9px;letter-spacing:0.1em;" onclick="togglePreviewPanel()" title="Close preview">✕</button>
+      </div>
+    </div>
+    <div class="preview-highlight-bar"></div>
+    <div id="preview-frame-wrap">
+      <div id="preview-loading" class="hidden">
+        <div class="preview-spinner"></div>
+        <div style="font-size:10px;color:var(--gray-40);letter-spacing:0.14em;">Rendering preview…</div>
+      </div>
+      <div id="preview-no-content">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <div style="font-size:11px;color:var(--gray-50);line-height:1.8;">
+          Load your project folder first,<br>then edits appear here in real-time.
+        </div>
+        <button class="btn btn-outline" style="font-size:10px;padding:6px 14px;" onclick="locateFolder()">
+          Load Project Folder
+        </button>
+      </div>
+      <iframe id="preview-frame" sandbox="allow-scripts allow-same-origin" title="Site Preview"></iframe>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Hidden file inputs -->
+<input type="file" id="folder-file" webkitdirectory multiple>
+<input type="file" id="logo-file" accept="image/*">
+<input type="file" id="fav-file" accept="image/*,.ico">
+
+<!-- Preview modal -->
+<div id="preview-modal" onclick="closePreview()">
+  <div class="preview-inner" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <span id="preview-title" style="font-size:12px;color:var(--gray-20);"></span>
+      <button class="btn btn-outline" onclick="closePreview()" style="padding:4px 10px;font-size:10px;">Close</button>
+    </div>
+    <div id="preview-content"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   ASSET DEFINITIONS — filenames match index.html exactly
+   (spaces, not hyphens)
+═══════════════════════════════════════════════════════ */
+
+// Images exactly as referenced in index.html CSS / src attributes
+const IMAGE_SLOTS = [
+  { id: 'hero-bg',       target: 'src/images/hero background.jpg',  label: 'Hero Background',        w: 1920, h: 1080 },
+  { id: 'about-founder', target: 'src/images/about founder.jpg',    label: 'Founder Portrait',        w: 800,  h: 1100 },
+  { id: 'project-1',     target: 'src/images/project 1.jpg',        label: 'Project 1 — Residential Villa', w: 800, h: 600 },
+  { id: 'project-2',     target: 'src/images/project 2.jpg',        label: 'Project 2 — Corporate HQ',      w: 800, h: 600 },
+  { id: 'project-3',     target: 'src/images/project 3.jpg',        label: 'Project 3 — Mixed-Use Dev',     w: 800, h: 600 },
+  { id: 'project-4',     target: 'src/images/project 4.jpg',        label: 'Project 4 — Institutional',     w: 800, h: 600 },
+  { id: 'project-5',     target: 'src/images/project 5.jpg',        label: 'Project 5 — Landscape Plan',    w: 800, h: 600 },
+  { id: 'project-6',     target: 'src/images/project 6.jpg',        label: 'Project 6 — Interior Suite',    w: 800, h: 600 },
+  { id: 'zambia-map',    target: 'src/images/zambia map.jpg',        label: 'Contact Map (Lusaka)',    w: 1200, h: 900 },
+];
+
+const VIDEO_SLOTS = [
+  { id: 'hero-mp4',  target: 'src/video/hero reel.mp4',  label: 'Hero Video (MP4 / H.264)', accept: 'video/mp4,video/*' },
+  { id: 'hero-webm', target: 'src/video/hero reel.webm', label: 'Hero Video (WebM / VP9)',  accept: 'video/webm,video/*' },
+];
+
+const MODEL_SLOTS = [
+  { id: 'ar1', target: 'ar1.glb', label: 'Residential Villa — ar1.glb' },
+  { id: 'ar2', target: 'ar2.glb', label: 'Corporate HQ — ar2.glb' },
+  { id: 'ar3', target: 'ar3.glb', label: 'Mixed-Use Dev — ar3.glb' },
+];
+
+const SOUND_TARGET = 'src/sound/scroll click.mp3'; // exact match to index.html
+
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+const STATE = {
+  folderFiles: {},   // relative path → File
+  uploads: {},       // targetPath → { file, dataUrl, originalName }
+  htmlContent: null,
+  arContent: null,
+  folderPath: null,
+};
+
+/* ═══════════════════════════════════════════════════════
+   CHROME FILE SYSTEM ACCESS API DETECTION
+═══════════════════════════════════════════════════════ */
+const HAS_FSA = 'showDirectoryPicker' in window;
+document.addEventListener('DOMContentLoaded', () => {
+  if (HAS_FSA) {
+    document.getElementById('fsa-banner').style.display = 'flex';
+    document.getElementById('fsa-export-section').style.display = 'block';
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════════════════ */
+const TAB_TITLES = {
+  dashboard:'Dashboard', text:'Text & Copy', images:'Images', video:'Video',
+  models:'3D Models', sound:'Scroll Sound', branding:'Logo & Favicon', export:'Apply & Export',
+};
+
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+  const navEl = document.querySelector(`.nav-item[onclick="switchTab('${id}')"]`);
+  if (navEl) navEl.classList.add('active');
+  document.getElementById('topbar-title').textContent = TAB_TITLES[id] || id;
+  if (id === 'export') refreshChangesList();
+  if (typeof updatePreviewSectionLabel === 'function') updatePreviewSectionLabel(id);
+  if (typeof previewOpen !== 'undefined' && previewOpen && STATE.htmlContent) schedulePreviewRefresh(400);
+}
+
+/* ═══════════════════════════════════════════════════════
+   FOLDER PICKER (webkitdirectory — works in all browsers)
+═══════════════════════════════════════════════════════ */
+document.getElementById('folder-file').addEventListener('change', function(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  STATE.folderFiles = {};
+  files.forEach(f => {
+    const rel = f.webkitRelativePath || f.name;
+    STATE.folderFiles[rel] = f;
+    STATE.folderFiles[f.name] = f;  // basename index too
+  });
+
+  // Read index.html
+  const htmlFile = files.find(f => f.name === 'index.html' && !f.webkitRelativePath.includes('node_modules'));
+  if (htmlFile) {
+    const r = new FileReader();
+    r.onload = ev => { STATE.htmlContent = ev.target.result; };
+    r.readAsText(htmlFile);
+  }
+
+  // Read ar-viewer.html
+  const arFile = files.find(f => f.name === 'ar-viewer.html');
+  if (arFile) {
+    const r = new FileReader();
+    r.onload = ev => { STATE.arContent = ev.target.result; };
+    r.readAsText(arFile);
+  }
+
+  STATE.folderPath = (files[0].webkitRelativePath || files[0].name).split('/')[0];
+  document.getElementById('folder-path-display').textContent = '📁 ' + STATE.folderPath + ' (' + files.length + ' files)';
+  document.getElementById('folder-zone').classList.add('has-path');
+
+  autoDetectAssets(files);
+  scanDashboard();
+  toast('Folder loaded: ' + files.length + ' files', 'ok');
+});
+
+function locateFolder() {
+  document.getElementById('folder-file').click();
+}
+
+function autoDetectAssets(files) {
+  const byName = {};
+  files.forEach(f => { byName[f.name.toLowerCase()] = f; });
+
+  IMAGE_SLOTS.forEach(slot => {
+    const bn = slot.target.split('/').pop().toLowerCase();
+    if (byName[bn]) {
+      const f = byName[bn];
+      const r = new FileReader();
+      r.onload = ev => {
+        STATE.uploads[slot.target] = { file: f, dataUrl: ev.target.result, originalName: f.name };
+        updateAssetThumb(slot.id, ev.target.result, f.name, 'image');
+      };
+      r.readAsDataURL(f);
+    }
+  });
+
+  VIDEO_SLOTS.forEach(slot => {
+    const bn = slot.target.split('/').pop().toLowerCase();
+    if (byName[bn]) {
+      const f = byName[bn];
+      STATE.uploads[slot.target] = { file: f, dataUrl: null, originalName: f.name };
+      updateAssetThumb(slot.id, null, f.name, 'video');
+    }
+  });
+
+  MODEL_SLOTS.forEach(slot => {
+    const bn = slot.target.toLowerCase();
+    if (byName[bn]) {
+      const f = byName[bn];
+      STATE.uploads[slot.target] = { file: f, dataUrl: null, originalName: f.name };
+      updateAssetThumb(slot.id, null, f.name, 'glb');
+    }
+  });
+
+  const soundBn = SOUND_TARGET.split('/').pop().toLowerCase();
+  if (byName[soundBn]) {
+    const f = byName[soundBn];
+    STATE.uploads[SOUND_TARGET] = { file: f, dataUrl: null, originalName: f.name };
+    updateAssetThumb('scroll', null, f.name, 'audio');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   DASHBOARD SCAN
+═══════════════════════════════════════════════════════ */
+function scanDashboard() {
+  const fm = STATE.folderFiles;
+  function hasFile(name) {
+    return !!fm[name] || !!fm[name.split('/').pop()];
+  }
+  function makeStatus(items) {
+    return items.map(item => {
+      const found = hasFile(item.name);
+      return `<div class="status-row">
+        <div class="status-icon ${found?'ok':'miss'}"></div>
+        <span style="flex:1;font-size:11px;color:var(--${found?'gray-20':'gray-40'})">${item.label}</span>
+        <span class="badge badge-${found?'ok':'miss'}">${found?'found':'missing'}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const htmlItems = [
+    { name: 'index.html',    label: 'index.html' },
+    { name: 'ar-viewer.html',label: 'ar-viewer.html' },
+  ];
+  document.getElementById('html-status').innerHTML = makeStatus(htmlItems);
+
+  const audioItems = [{ name: SOUND_TARGET.split('/').pop(), label: SOUND_TARGET }];
+  document.getElementById('audio-status').innerHTML = makeStatus(audioItems);
+
+  const imgItems = IMAGE_SLOTS.map(s => ({ name: s.target.split('/').pop(), label: s.target }));
+  const imgFound = imgItems.filter(i => hasFile(i.name)).length;
+  document.getElementById('img-status').innerHTML = makeStatus(imgItems);
+  document.getElementById('img-badge').innerHTML = `<span class="badge badge-${imgFound===imgItems.length?'ok':'warn'}">${imgFound}/${imgItems.length}</span>`;
+
+  const vidItems = VIDEO_SLOTS.map(s => ({ name: s.target.split('/').pop(), label: s.target }));
+  document.getElementById('vid-status').innerHTML = makeStatus(vidItems);
+
+  const glbItems = MODEL_SLOTS.map(s => ({ name: s.target, label: s.target }));
+  document.getElementById('glb-status').innerHTML = makeStatus(glbItems);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ASSET SLOT RENDERING
+═══════════════════════════════════════════════════════ */
+function renderImageSlots() {
+  const groups = {
+    'img-hero-slot':     IMAGE_SLOTS.filter(s => s.id === 'hero-bg'),
+    'img-about-slot':    IMAGE_SLOTS.filter(s => s.id === 'about-founder'),
+    'img-projects-slot': IMAGE_SLOTS.filter(s => s.id.startsWith('project-')),
+    'img-contact-slot':  IMAGE_SLOTS.filter(s => s.id === 'zambia-map'),
+  };
+  Object.entries(groups).forEach(([cid, slots]) => {
+    const el = document.getElementById(cid);
+    if (!el) return;
+    el.innerHTML = slots.map(s => assetRowHTML(s.id, s.target, s.label, `${s.w}×${s.h}px`, 'image')).join('');
+    slots.forEach(s => bindFileInput(s.id, s.target, 'image'));
+  });
+}
+
+function renderVideoSlots() {
+  document.getElementById('vid-mp4-slot').innerHTML  = assetRowHTML(VIDEO_SLOTS[0].id, VIDEO_SLOTS[0].target, VIDEO_SLOTS[0].label, 'MP4/H.264', 'video');
+  document.getElementById('vid-webm-slot').innerHTML = assetRowHTML(VIDEO_SLOTS[1].id, VIDEO_SLOTS[1].target, VIDEO_SLOTS[1].label, 'WebM/VP9',  'video');
+  bindFileInput(VIDEO_SLOTS[0].id, VIDEO_SLOTS[0].target, 'video');
+  bindFileInput(VIDEO_SLOTS[1].id, VIDEO_SLOTS[1].target, 'video');
+}
+
+function renderModelSlots() {
+  MODEL_SLOTS.forEach((slot, i) => {
+    const el = document.getElementById('glb' + (i+1) + '-slot');
+    if (!el) return;
+    el.innerHTML = assetRowHTML(slot.id, slot.target, slot.label, '.glb GLTF binary', 'glb');
+    bindFileInput(slot.id, slot.target, 'glb');
+  });
+}
+
+function renderSoundSlot() {
+  document.getElementById('sound-slot').innerHTML = assetRowHTML('scroll', SOUND_TARGET, 'Scroll Click Sound', 'MP3 · short soft click', 'audio');
+  bindFileInput('scroll', SOUND_TARGET, 'audio');
+}
+
+function assetRowHTML(id, target, label, meta, type) {
+  const up = STATE.uploads[target];
+  const thumbContent = up ? (type==='image' ? `<img src="${up.dataUrl}" alt="">` : iconForType(type)) : iconForType(type);
+  const nameText  = up ? up.originalName : 'No file — click to upload';
+  const nameColor = up ? 'var(--white)' : 'var(--gray-40)';
+  return `
+  <div class="asset-row" id="row-${id}">
+    <div class="asset-thumb ${type==='glb'?'glb-thumb':''}" id="thumb-${id}" onclick="onThumbClick('${id}','${target}','${type}')" title="Click to preview or upload">
+      ${thumbContent}
+    </div>
+    <div class="asset-info">
+      <div class="asset-name" id="name-${id}" style="color:${nameColor}">${nameText}</div>
+      <div class="asset-desc">→ <code>${target}</code> · ${meta}</div>
+    </div>
+    <div class="asset-actions" id="actions-${id}">
+      ${up ? `<button class="btn btn-outline" onclick="previewAsset('${id}','${target}','${type}')" style="padding:5px 10px;font-size:10px;">Preview</button>` : ''}
+      <button class="btn btn-gold" onclick="triggerFileForSlot('${id}','${target}','${type}')" style="padding:5px 10px;font-size:10px;">Replace</button>
+    </div>
+  </div>`;
+}
+
+function iconForType(type) {
+  if (type==='image') return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>`;
+  if (type==='video') return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+  if (type==='glb')   return `🧊`;
+  if (type==='audio') return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`;
+  return '?';
+}
+
+function updateAssetThumb(id, dataUrl, originalName, type='image') {
+  const thumb = document.getElementById('thumb-' + id);
+  const name  = document.getElementById('name-'  + id);
+  const actions = document.getElementById('actions-' + id);
+  if (thumb) {
+    thumb.innerHTML = (dataUrl && type==='image') ? `<img src="${dataUrl}" alt="">` : iconForType(type);
+    if (type !== 'image') thumb.style.borderColor = 'var(--success)';
+  }
+  if (name) { name.textContent = originalName; name.style.color = 'var(--white)'; }
+  // Add preview button if not present
+  if (actions && !actions.querySelector('.preview-btn')) {
+    const pb = document.createElement('button');
+    pb.className = 'btn btn-outline preview-btn';
+    pb.style.cssText = 'padding:5px 10px;font-size:10px;';
+    pb.textContent = 'Preview';
+    pb.onclick = () => previewAsset(id, findTargetById(id), type);
+    actions.insertBefore(pb, actions.firstChild);
+  }
+  if (typeof previewOpen !== 'undefined' && previewOpen && STATE.htmlContent && type === 'image') schedulePreviewRefresh(600);
+}
+
+function findTargetById(id) {
+  const all = [...IMAGE_SLOTS, ...VIDEO_SLOTS, ...MODEL_SLOTS, { id:'scroll', target: SOUND_TARGET }];
+  const s = all.find(s => s.id === id);
+  return s ? s.target : id;
+}
+
+/* ═══════════════════════════════════════════════════════
+   FILE INPUTS — dynamically created to avoid popup-blocker
+═══════════════════════════════════════════════════════ */
+const fileInputs = {};
+
+function bindFileInput(id, target, type) {
+  if (fileInputs[id]) { fileInputs[id].remove(); }
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.style.display = 'none';
+  inp.accept = type==='image' ? 'image/*' : type==='video' ? 'video/*' : type==='glb' ? '.glb' : 'audio/*';
+  inp.addEventListener('change', e => handleFileUpload(e, id, target, type));
+  document.body.appendChild(inp);
+  fileInputs[id] = inp;
+}
+
+function triggerFileForSlot(id, target, type) {
+  if (fileInputs[id]) fileInputs[id].click();
+}
+
+function triggerFile(inputId) {
+  document.getElementById(inputId).click();
+}
+
+function onThumbClick(id, target, type) {
+  const up = STATE.uploads[target];
+  if (up) previewAsset(id, target, type);
+  else triggerFileForSlot(id, target, type);
+}
+
+function handleFileUpload(e, id, target, type) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (type === 'image' || type === 'audio') {
+    const r = new FileReader();
+    r.onload = ev => {
+      STATE.uploads[target] = { file, dataUrl: ev.target.result, originalName: file.name };
+      updateAssetThumb(id, ev.target.result, file.name, type);
+      toast(`Uploaded: ${file.name} → ${target.split('/').pop()}`, 'ok');
+    };
+    r.readAsDataURL(file);
+  } else {
+    STATE.uploads[target] = { file, dataUrl: null, originalName: file.name };
+    updateAssetThumb(id, null, file.name, type);
+    toast(`Uploaded: ${file.name} → ${target.split('/').pop()}`, 'ok');
+  }
+}
+
+/* Logo & Favicon */
+document.getElementById('logo-file').addEventListener('change', function(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    STATE.uploads['src/images/logo.png'] = { file, dataUrl: ev.target.result, originalName: file.name };
+    document.getElementById('logo-thumb').innerHTML = `<img src="${ev.target.result}" alt="" style="width:100%;height:100%;object-fit:contain;">`;
+    document.getElementById('logo-name').textContent = file.name;
+    document.getElementById('logo-name').style.color = 'var(--white)';
+    toast('Logo uploaded: ' + file.name, 'ok');
+  };
+  r.readAsDataURL(file);
+});
+
+document.getElementById('fav-file').addEventListener('change', function(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    STATE.uploads['favicon.ico'] = { file, dataUrl: ev.target.result, originalName: file.name };
+    document.getElementById('fav-thumb').innerHTML = `<img src="${ev.target.result}" alt="" style="width:24px;height:24px;object-fit:contain;">`;
+    document.getElementById('fav-name').textContent = file.name;
+    document.getElementById('fav-name').style.color = 'var(--white)';
+    toast('Favicon uploaded: ' + file.name, 'ok');
+  };
+  r.readAsDataURL(file);
+});
+
+/* ═══════════════════════════════════════════════════════
+   PREVIEW
+═══════════════════════════════════════════════════════ */
+function previewAsset(id, target, type) {
+  const up = STATE.uploads[target];
+  if (!up) { toast('No file uploaded yet', 'err'); return; }
+  document.getElementById('preview-title').textContent = up.originalName + '  →  ' + target;
+  const content = document.getElementById('preview-content');
+  if (type === 'image') {
+    content.innerHTML = `<img src="${up.dataUrl}" alt="" style="max-height:380px;object-fit:contain;">`;
+  } else if (type === 'video') {
+    const url = URL.createObjectURL(up.file);
+    content.innerHTML = `<video src="${url}" controls style="max-height:300px;"></video>`;
+  } else if (type === 'audio') {
+    const url = URL.createObjectURL(up.file);
+    content.innerHTML = `<audio src="${url}" controls style="width:100%;margin-bottom:8px;"></audio>`;
+  } else if (type === 'glb') {
+    content.innerHTML = `<div style="padding:20px;text-align:center;color:var(--gray-40);font-size:12px;">🧊<br>${up.originalName}<br><span style="font-size:10px;">${(up.file.size/1024).toFixed(1)} KB · GLTF Binary</span></div>`;
+  }
+  document.getElementById('preview-modal').classList.add('open');
+}
+
+function closePreview() {
+  document.getElementById('preview-modal').classList.remove('open');
+  document.getElementById('preview-content').innerHTML = '';
+}
+
+/* ═══════════════════════════════════════════════════════
+   PROJECTS TEXT EDITOR
+═══════════════════════════════════════════════════════ */
+const DEFAULT_PROJECTS = [
+  { title: 'Residential Villa',     category: 'Residential' },
+  { title: 'Corporate Headquarters',category: 'Commercial' },
+  { title: 'Mixed-Use Development', category: 'Mixed-Use' },
+  { title: 'Institutional Complex', category: 'Institutional' },
+  { title: 'Landscape Masterplan',  category: 'Landscape' },
+  { title: 'Interior Design Suite', category: 'Interior' },
+];
+
+function renderProjectsEditor() {
+  const c = document.getElementById('projects-text-editor');
+  if (!c) return;
+  c.innerHTML = DEFAULT_PROJECTS.map((p, i) => `
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--gray-70);">
+      <div style="font-size:10px;color:var(--gray-40);margin-bottom:5px;letter-spacing:0.1em;">Project ${i+1}</div>
+      <div class="grid-2">
+        <div class="text-field-group">
+          <label class="field-label">Title</label>
+          <input type="text" id="proj-title-${i}" value="${p.title}">
+        </div>
+        <div class="text-field-group">
+          <label class="field-label">Category</label>
+          <input type="text" id="proj-cat-${i}" value="${p.category}">
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   HTML GENERATION — patches the real index.html structure
+═══════════════════════════════════════════════════════ */
+function buildModifiedHTML() {
+  let html = STATE.htmlContent;
+  if (!html) {
+    toast('No index.html loaded — load your project folder first', 'err');
+    return null;
+  }
+
+  const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+
+  // ── Title tag ──────────────────────────────────────────────
+  html = html.replace(/<title>[^<]*<\/title>/, `<title>${esc(g('txt-title'))}</title>`);
+
+  // ── Nav logo text ─────────────────────────────────────────
+  // index.html: <a class="nav-logo" href="#">Ntalasha Architects</a>
+  html = html.replace(/(class="nav-logo"[^>]*>)([^<]*)(<\/a>)/, `$1${esc(g('txt-logo-text'))}$3`);
+
+  // ── Hero tag line ─────────────────────────────────────────
+  // <p class="hero-tag">Architecture · Lusaka, Zambia</p>
+  html = html.replace(/(<p class="hero-tag">)[^<]*(<\/p>)/, `$1${esc(g('txt-hero-tag'))}$2`);
+
+  // ── Hero H1 (supports <br> tags entered by user) ──────────
+  // <h1 class="hero-title">Space.<br>Craft.<br>Purpose.</h1>
+  const heroH1Raw = g('txt-hero-h1').replace(/&lt;br&gt;/g,'<br>').replace(/<br>/g,'<br>');
+  html = html.replace(/(<h1 class="hero-title">)[\s\S]*?(<\/h1>)/, `$1${heroH1Raw}$2`);
+
+  // ── Hero sub ──────────────────────────────────────────────
+  html = html.replace(/(<p class="hero-sub">)[^<]*(<\/p>)/, `$1${esc(g('txt-hero-sub'))}$2`);
+
+  // ── About section title ──────────────────────────────────
+  // <h2 class="section-title" style="color:var(--black)">Architecture<br>with intention.</h2>
+  const aboutH2 = g('txt-about-h2').replace(/&lt;br&gt;/g,'<br>');
+  html = html.replace(/(<h2 class="section-title"[^>]*>)([\s\S]*?)(<\/h2>)(?=[\s\S]*?class="body-text")/, `$1${aboutH2}$3`);
+
+  // ── About body paragraphs ─────────────────────────────────
+  const p1 = esc(g('txt-about-p1'));
+  const p2 = esc(g('txt-about-p2'));
+  // Replace first .body-text paragraph in about section
+  let pCount = 0;
+  html = html.replace(/(<p class="body-text">)([\s\S]*?)(<\/p>)/g, (match, open, content, close) => {
+    pCount++;
+    if (pCount === 1) return `${open}${p1}${close}`;
+    if (pCount === 2) return `${open}${p2}${close}`;
+    return match;
+  });
+
+  // ── Contact phone ─────────────────────────────────────────
+  html = html.replace(/(href="tel:)[^"]*(")/,  `$1tel:${g('txt-contact-phone').replace(/\s/g,'')}$2`);
+  html = html.replace(/(<a href="tel:[^"]*">)[^<]*(<\/a>)/, `$1${esc(g('txt-contact-phone'))}$2`);
+
+  // ── Contact email ─────────────────────────────────────────
+  html = html.replace(/(href="mailto:)[^"]*(")/,  `$1mailto:${g('txt-contact-email')}$2`);
+  html = html.replace(/(<a href="mailto:[^"]*">)[^<]*(<\/a>)/, `$1${esc(g('txt-contact-email'))}$2`);
+
+  // ── Contact location span ─────────────────────────────────
+  html = html.replace(/(<span>Lusaka[^<]*<\/span>)/, `<span>${esc(g('txt-contact-location'))}</span>`);
+
+  // ── WhatsApp link ─────────────────────────────────────────
+  const wa = g('txt-contact-wa').replace(/\D/g,'');
+  html = html.replace(/(href="https:\/\/wa\.me\/)[^"]*(")/,  `$1https://wa.me/${wa}$2`);
+
+  // ── Project tiles ─────────────────────────────────────────
+  // Replace tile-name and tile-category in project tiles
+  const projTiles = html.match(/<div class="project-tile"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g);
+  if (projTiles) {
+    let htmlCopy = html;
+    for (let i = 0; i < Math.min(6, projTiles.length); i++) {
+      const title = g('proj-title-' + i);
+      const cat   = g('proj-cat-' + i);
+      if (title) htmlCopy = htmlCopy.replace(
+        new RegExp('(<span class="tile-name">)[^<]*(</span>)'),
+        (m, a, b) => a + esc(title) + b
+      );
+      if (cat) htmlCopy = htmlCopy.replace(
+        new RegExp('(<span class="tile-category">)[^<]*(</span>)'),
+        (m, a, b) => a + esc(cat) + b
+      );
+    }
+    html = htmlCopy;
+  }
+
+  // ── Sound volume ──────────────────────────────────────────
+  const vol = parseFloat(g('snd-volume')) || 0.22;
+  html = html.replace(/scrollAudio\.volume\s*=\s*[\d.]+/, `scrollAudio.volume = ${vol}`);
+
+  // ── Sound trigger delay ───────────────────────────────────
+  const delay = parseInt(g('snd-delay')) || 40;
+  html = html.replace(/(scrollSoundTimer\s*=\s*setTimeout\(playScrollSound,\s*)\d+(\))/, `$1${delay}$2`);
+
+  // ── Favicon ───────────────────────────────────────────────
+  if (STATE.uploads['favicon.ico']) {
+    if (!html.includes('rel="icon"')) {
+      html = html.replace('</head>', `<link rel="icon" href="favicon.ico">\n</head>`);
+    } else {
+      html = html.replace(/(<link rel="icon"[^>]*href=")[^"]*"/,  `$1favicon.ico"`);
+    }
+  }
+
+  // ── Logo image ────────────────────────────────────────────
+  if (STATE.uploads['src/images/logo.png']) {
+    html = html.replace(/(class="nav-logo"[^>]*>)([^<]*?)(<\/a>)/,
+      `$1<img src="src/images/logo.png" alt="${esc(g('txt-logo-text'))}" style="height:32px;vertical-align:middle;">$3`);
+  }
+
+  return html;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CHANGES LIST
+═══════════════════════════════════════════════════════ */
+function collectChanges() {
+  const changes = [];
+  [...IMAGE_SLOTS, ...VIDEO_SLOTS, ...MODEL_SLOTS].forEach(slot => {
+    if (STATE.uploads[slot.target])
+      changes.push({ type: slot.id.startsWith('ar')?'glb':VIDEO_SLOTS.find(v=>v.id===slot.id)?'video':'image',
+        label: slot.label, target: slot.target, original: STATE.uploads[slot.target].originalName });
+  });
+  if (STATE.uploads[SOUND_TARGET])
+    changes.push({ type:'audio', label:'Scroll Sound', target: SOUND_TARGET, original: STATE.uploads[SOUND_TARGET].originalName });
+  if (STATE.uploads['src/images/logo.png'])
+    changes.push({ type:'image', label:'Logo', target:'src/images/logo.png', original: STATE.uploads['src/images/logo.png'].originalName });
+  if (STATE.uploads['favicon.ico'])
+    changes.push({ type:'image', label:'Favicon', target:'favicon.ico', original: STATE.uploads['favicon.ico'].originalName });
+  if (STATE.htmlContent)
+    changes.push({ type:'html', label:'index.html text content', target:'index.html', original:'modified' });
+  return changes;
+}
+
+function refreshChangesList() {
+  const changes = collectChanges();
+  const c = document.getElementById('changes-list');
+  if (!changes.length) { c.innerHTML = `<div style="color:var(--gray-40);font-size:11px;">No changes yet.</div>`; return; }
+  const icons = { image:'🖼', video:'🎬', glb:'🧊', audio:'🔊', html:'📄' };
+  c.innerHTML = changes.map(ch => `
+    <div class="status-row">
+      <span>${icons[ch.type]||'📄'}</span>
+      <span style="flex:1;font-size:11px;color:var(--gray-20)">${ch.label}</span>
+      <span style="font-size:10px;color:var(--gray-40)">${ch.original}</span>
+      <span style="font-size:10px;color:var(--gold)">→ ${ch.target.split('/').pop()}</span>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   DIFF PREVIEW
+═══════════════════════════════════════════════════════ */
+function generateDiff() {
+  refreshChangesList();
+  const out = document.getElementById('diff-output');
+  out.style.display = 'block';
+  const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  let lines = collectChanges()
+    .filter(c => c.type !== 'html')
+    .map(c => `<span class="diff-added">+ [${c.type.toUpperCase()}] ${c.original} → ${c.target}</span>`)
+    .join('\n');
+  lines += '\n\n<span class="diff-neutral">Text field values:</span>\n';
+  const fields = [
+    ['Site title', g('txt-title')],
+    ['Nav logo', g('txt-logo-text')],
+    ['Hero tag', g('txt-hero-tag')],
+    ['Hero H1', g('txt-hero-h1')],
+    ['About heading', g('txt-about-h2')],
+    ['Contact phone', g('txt-contact-phone')],
+    ['Contact email', g('txt-contact-email')],
+    ['Sound volume', g('snd-volume')],
+  ];
+  lines += fields.map(([k,v]) => `<span class="diff-added">+ ${k}: "${v}"</span>`).join('\n');
+  out.innerHTML = lines;
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT — ZIP download (all browsers)
+═══════════════════════════════════════════════════════ */
+async function exportAll() {
+  if (!STATE.htmlContent) {
+    toast('Load your project folder first (Dashboard → Locate Website Folder)', 'err');
+    return;
+  }
+  const bar  = document.getElementById('export-progress-bar');
+  const fill = document.getElementById('export-progress-fill');
+  bar.style.display = 'block';
+  fill.style.width = '5%';
+
+  const zip = new JSZip();
+  const modifiedHTML = buildModifiedHTML();
+  if (!modifiedHTML) { bar.style.display='none'; return; }
+  zip.file('index.html', modifiedHTML);
+  fill.style.width = '20%';
+
+  if (STATE.arContent) zip.file('ar-viewer.html', STATE.arContent);
+  fill.style.width = '25%';
+
+  const entries = Object.entries(STATE.uploads);
+  for (let i = 0; i < entries.length; i++) {
+    const [target, up] = entries[i];
+    if (up.file) {
+      const bytes = await up.file.arrayBuffer();
+      zip.file(target, bytes);
+    }
+    fill.style.width = (25 + Math.round((i / entries.length) * 68)) + '%';
+  }
+
+  fill.style.width = '96%';
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } });
+  fill.style.width = '100%';
+
+  // Chrome-safe download using createObjectURL + programmatic click
+  // Must happen synchronously inside a user gesture handler — we call via button onclick so it's fine
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ntalasha-architects-export.zip';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+  setTimeout(() => { bar.style.display='none'; fill.style.width='0%'; }, 1800);
+  toast('ZIP downloaded — extract into your project folder and overwrite', 'ok');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CHROME FILE SYSTEM ACCESS — Save directly to disk
+═══════════════════════════════════════════════════════ */
+async function saveToFolder() {
+  if (!HAS_FSA) { toast('File System Access API not available', 'err'); return; }
+  if (!STATE.htmlContent) { toast('Load your project folder first', 'err'); return; }
+
+  let dirHandle;
+  try {
+    dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+  } catch(e) {
+    if (e.name !== 'AbortError') toast('Could not open folder: ' + e.message, 'err');
+    return;
+  }
+
+  const statusEl = document.getElementById('fsa-status');
+  statusEl.textContent = 'Writing files…';
+  statusEl.className = 'save-status';
+
+  let written = 0;
+  const total = Object.keys(STATE.uploads).length + 1;
+
+  async function writeFile(handle, name, data) {
+    const fh = await handle.getFileHandle(name, { create: true });
+    const w  = await fh.createWritable();
+    await w.write(data);
+    await w.close();
+  }
+
+  async function ensureDir(parts, rootHandle) {
+    let cur = rootHandle;
+    for (const part of parts) {
+      cur = await cur.getDirectoryHandle(part, { create: true });
+    }
+    return cur;
+  }
+
+  try {
+    // Write index.html
+    const modHTML = buildModifiedHTML();
+    if (!modHTML) return;
+    await writeFile(dirHandle, 'index.html', modHTML);
+    written++;
+
+    if (STATE.arContent) {
+      await writeFile(dirHandle, 'ar-viewer.html', STATE.arContent);
+      written++;
+    }
+
+    for (const [target, up] of Object.entries(STATE.uploads)) {
+      if (!up.file) continue;
+      const parts = target.split('/');
+      const filename = parts.pop();
+      const dir = parts.length ? await ensureDir(parts, dirHandle) : dirHandle;
+      await writeFile(dir, filename, await up.file.arrayBuffer());
+      written++;
+      statusEl.textContent = `Writing… ${written}/${total} files`;
+    }
+
+    statusEl.textContent = `✓ ${written} files saved to folder`;
+    statusEl.className = 'save-status ok';
+    toast('All files saved directly to folder!', 'ok');
+  } catch(e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    toast('Save error: ' + e.message, 'err');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   LIVE PREVIEW PANEL
+═══════════════════════════════════════════════════════ */
+let previewOpen = false;
+let previewDebounceTimer = null;
+let previewSectionMap = {
+  dashboard: null,
+  text: null,       // scrolls to hero by default
+  images: null,
+  video: null,
+  models: null,
+  sound: null,
+  branding: null,
+  export: null,
+};
+
+// Section → panel index in the horizontal scroll site (0-based)
+const SECTION_PANEL = {
+  dashboard: 0,
+  text: 0,
+  images: 0,
+  video: 0,
+  models: 2,
+  sound: 0,
+  branding: 0,
+  export: 0,
+};
+
+const SECTION_LABEL = {
+  dashboard: 'Overview',
+  text: 'Hero / About',
+  images: 'Images',
+  video: 'Hero Video',
+  models: 'AR Models',
+  sound: 'Scroll Sound',
+  branding: 'Logo',
+  export: 'Full Page',
+};
+
+function togglePreviewPanel() {
+  previewOpen = !previewOpen;
+  const panel = document.getElementById('preview-panel');
+  const btn   = document.getElementById('preview-toggle-btn');
+  if (previewOpen) {
+    panel.classList.add('open');
+    btn.classList.add('active');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="9" height="12" rx="1"/><path d="M12 5h3M12 8h3M12 11h3"/></svg> Hide Preview`;
+    if (STATE.htmlContent) {
+      schedulePreviewRefresh(0);
+    }
+    scalePreviewFrame();
+  } else {
+    panel.classList.remove('open');
+    btn.classList.add('active');
+    btn.classList.remove('active');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="9" height="12" rx="1"/><path d="M12 5h3M12 8h3M12 11h3"/></svg> Live Preview`;
+  }
+}
+
+function scalePreviewFrame() {
+  const wrap  = document.getElementById('preview-frame-wrap');
+  const frame = document.getElementById('preview-frame');
+  if (!wrap || !frame) return;
+  const w = wrap.clientWidth;
+  const h = wrap.clientHeight;
+  if (!w) return;
+  const scale = w / 1280;
+  frame.style.transform = `scale(${scale})`;
+  frame.style.height    = (h / scale) + 'px';
+}
+
+window.addEventListener('resize', () => { if (previewOpen) scalePreviewFrame(); });
+
+function schedulePreviewRefresh(delay=800) {
+  clearTimeout(previewDebounceTimer);
+  previewDebounceTimer = setTimeout(refreshPreview, delay);
+}
+
+function refreshPreview() {
+  if (!previewOpen) return;
+  if (!STATE.htmlContent) return;
+
+  const noContent = document.getElementById('preview-no-content');
+  const loading   = document.getElementById('preview-loading');
+  const frame     = document.getElementById('preview-frame');
+
+  noContent.style.display = 'none';
+  loading.classList.remove('hidden');
+
+  // Build modified HTML with current edits
+  let html = buildModifiedHTML();
+  if (!html) { loading.classList.add('hidden'); return; }
+
+  // Patch image srcs to use blob/data URLs from uploaded files
+  html = patchPreviewImages(html);
+
+  // Inject a style to disable the horizontal scroll animation for preview
+  // and force the site to show a static view
+  const previewStyle = `
+    <style id="cms-preview-override">
+      html, body { overflow: auto !important; }
+      #scroll-root { position: static !important; overflow: auto !important; }
+      #track { display: block !important; transform: none !important; }
+      .panel { width: 100% !important; flex: none !important; height: auto !important; min-height: 60vh; }
+      .panel--wide { width: 100% !important; }
+      #preloader { display: none !important; }
+      #compass { display: none !important; }
+      #hint-overlay { display: none !important; }
+      body { overflow: auto !important; height: auto !important; }
+    </style>`;
+  html = html.replace('</head>', previewStyle + '</head>');
+
+  // Scroll to the active section in preview
+  const currentTab = document.querySelector('.tab-panel.active');
+  const tabId = currentTab ? currentTab.id.replace('tab-', '') : 'dashboard';
+  updatePreviewSectionLabel(tabId);
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+
+  frame.onload = () => {
+    loading.classList.add('hidden');
+    scalePreviewFrame();
+    // Scroll preview to relevant section
+    scrollPreviewToSection(frame, tabId);
+    URL.revokeObjectURL(url);
+  };
+  frame.src = url;
+}
+
+function patchPreviewImages(html) {
+  // Replace image src paths with data URLs from uploaded files
+  Object.entries(STATE.uploads).forEach(([target, up]) => {
+    if (up.dataUrl && up.dataUrl.startsWith('data:image')) {
+      // Escape special chars in the path for regex
+      const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s/g, '\\s*');
+      // Replace in src="" and url() references
+      html = html.replace(new RegExp('src="[^"]*' + escaped + '"', 'g'), `src="${up.dataUrl}"`);
+      html = html.replace(new RegExp("url\\(['\"]?[^'\"\\)]*" + escaped + "['\"]?\\)", 'g'), `url(${up.dataUrl})`);
+    }
+  });
+  return html;
+}
+
+function scrollPreviewToSection(frame, tabId) {
+  try {
+    const sectionSelectors = {
+      text:     '#hero',
+      images:   '#hero',
+      video:    '#hero',
+      sound:    '#hero',
+      branding: '#nav',
+      models:   '#projects',
+      export:   'body',
+      dashboard:'body',
+    };
+    const sel = sectionSelectors[tabId] || 'body';
+    // Use postMessage to avoid cross-origin issues with blob URLs
+    setTimeout(() => {
+      try {
+        const doc = frame.contentDocument;
+        if (doc) {
+          const el = doc.querySelector(sel);
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch(e) {}
+    }, 200);
+  } catch(e) {}
+}
+
+function updatePreviewSectionLabel(tabId) {
+  const label = document.getElementById('preview-section-name');
+  if (label) label.textContent = SECTION_LABEL[tabId] || tabId;
+}
+
+// Hook into all text input/change events to auto-refresh preview
+document.addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.matches('input[type="text"], input[type="email"], input[type="tel"], textarea')) {
+    if (previewOpen && STATE.htmlContent) schedulePreviewRefresh(900);
+  }
+});
+
+// After folder loads, refresh preview if panel is open
+// Runs after the main handler (which sets STATE.htmlContent) via setTimeout
+document.getElementById('folder-file').addEventListener('change', function() {
+  setTimeout(() => {
+    if (previewOpen && STATE.htmlContent) schedulePreviewRefresh(500);
+  }, 900);
+});
+
+/* ═══════════════════════════════════════════════════════
+   MAKE LIVE / LIVE MODAL
+═══════════════════════════════════════════════════════ */
+function openLiveModal() {
+  document.getElementById('live-modal').classList.add('open');
+}
+function closeLiveModal() {
+  document.getElementById('live-modal').classList.remove('open');
+}
+async function goLive() {
+  if (!STATE.htmlContent) {
+    toast('Load your project folder first before going live.', 'err');
+    closeLiveModal();
+    return;
+  }
+  const bar  = document.getElementById('live-export-progress');
+  const fill = document.getElementById('live-progress-fill');
+  bar.style.display = 'block';
+  fill.style.width = '10%';
+
+  // Re-use exportAll logic, but first update progress
+  const zip = new JSZip();
+  const modifiedHTML = buildModifiedHTML();
+  if (!modifiedHTML) { bar.style.display='none'; closeLiveModal(); return; }
+  zip.file('index.html', modifiedHTML);
+  fill.style.width = '30%';
+
+  if (STATE.arContent) zip.file('ar-viewer.html', STATE.arContent);
+  fill.style.width = '40%';
+
+  const entries = Object.entries(STATE.uploads);
+  for (let i = 0; i < entries.length; i++) {
+    const [target, up] = entries[i];
+    if (up.file) {
+      const bytes = await up.file.arrayBuffer();
+      zip.file(target, bytes);
+    }
+    fill.style.width = (40 + Math.round((i / Math.max(entries.length, 1)) * 55)) + '%';
+  }
+
+  fill.style.width = '98%';
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 1 } });
+  fill.style.width = '100%';
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'ntalasha-architects-LIVE.zip';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+  setTimeout(() => {
+    bar.style.display = 'none'; fill.style.width = '0%';
+    closeLiveModal();
+    toast('🚀 Live package downloaded! Extract and deploy to your server.', 'ok');
+  }, 900);
+}
+
+function toast(msg, type='') {
+  const tc = document.getElementById('toast-container');
+  const t  = document.createElement('div');
+  t.className = 'toast' + (type ? ' toast-'+type : '');
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.35s'; setTimeout(() => t.remove(), 350); }, 3200);
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  renderProjectsEditor();
+  renderImageSlots();
+  renderVideoSlots();
+  renderModelSlots();
+  renderSoundSlot();
+});
+</script>
+</body>
+</html>

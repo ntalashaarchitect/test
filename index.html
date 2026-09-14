@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ntalasha Architects — Lusaka, Zambia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black:   #0a0a0a;
+  --g90:     #111111;
+  --g80:     #1e1e1e;
+  --g60:     #3a3a3a;
+  --g40:     #6b6b6b;
+  --g20:     #b0b0b0;
+  --g10:     #d8d8d8;
+  --white:   #f5f5f3;
+  --accent:  #e8e8e4;
+}
+
+html { scroll-behavior: auto; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'DM Mono', monospace;
+  font-weight: 300;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ── Scroll container ─────────────────────────── */
+#scroll-root {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  overflow: hidden;
+}
+
+#track {
+  display: flex;
+  height: 100vh;
+  will-change: transform;
+}
+
+/* ── Panels ───────────────────────────────────── */
+.panel {
+  flex: 0 0 100vw;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  overflow: hidden;
+}
+.panel--wide {
+  flex: 0 0 160vw;
+  width: 160vw;
+}
+
+/* ── NAV ──────────────────────────────────────── */
+#nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28px 48px;
+  transition:
+    transform .45s cubic-bezier(.4,0,.2,1),
+    opacity .35s ease,
+    backdrop-filter .4s ease,
+    background .4s ease;
+}
+#nav.nav-visible {
+  transform: translateY(0);
+  opacity: 1;
+  backdrop-filter: blur(14px) brightness(0.7);
+  -webkit-backdrop-filter: blur(14px) brightness(0.7);
+  background: rgba(10,10,10,.18);
+}
+#nav.nav-hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  backdrop-filter: blur(0px);
+  background: transparent;
+}
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+}
+.nav-links {
+  display: flex;
+  gap: 36px;
+  list-style: none;
+}
+.nav-links a {
+  font-size: .65rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--g20);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--white); }
+
+/* progress bar */
+#progress {
+  position: fixed;
+  bottom: 0; left: 0;
+  height: 1px;
+  background: var(--g40);
+  width: 0%;
+  z-index: 200;
+}
+
+/* ── PRELOADER ────────────────────────────────── */
+#preloader {
+  position: fixed; inset: 0; z-index: 900;
+  background: var(--black);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 28px;
+  transition: opacity .7s ease;
+}
+#preloader.fade-out { opacity: 0; pointer-events: none; }
+#preloader-brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  font-weight: 300;
+  letter-spacing: .38em;
+  text-transform: uppercase;
+  color: var(--g40);
+  opacity: 0;
+  animation: fadeUp .8s ease .4s forwards;
+}
+#preloader-status {
+  font-size: .52rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--g60);
+  opacity: 0;
+  animation: fadeUp .6s ease .9s forwards;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── COMPASS ──────────────────────────────────── */
+#compass {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 910;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+  pointer-events: none; opacity: 1;
+  transition:
+    top .9s cubic-bezier(.4,0,.2,1),
+    bottom .9s cubic-bezier(.4,0,.2,1),
+    transform .9s cubic-bezier(.4,0,.2,1),
+    opacity .6s ease;
+}
+#compass.settled {
+  top: auto; bottom: 36px;
+  transform: translateX(-50%);
+}
+#compass.hidden { opacity: 0; }
+#compass-svg {
+  width: 56px; height: 56px;
+  transition:
+    width .9s cubic-bezier(.4,0,.2,1),
+    height .9s cubic-bezier(.4,0,.2,1),
+    filter .3s ease;
+}
+#compass.preloading #compass-svg { width: 110px; height: 110px; }
+#compass.scrolling #compass-svg { filter: drop-shadow(0 0 6px rgba(245,245,243,.3)); }
+#compass-svg circle:first-child { transition: stroke .25s ease; }
+#compass.scrolling #compass-svg circle:first-child { stroke: #888; }
+#compass-label {
+  font-size: .52rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--g40);
+  white-space: nowrap;
+  transition: opacity .4s ease, color .25s ease;
+}
+#compass.preloading #compass-label { opacity: 0; }
+#compass.scrolling #compass-label { color: var(--g20); }
+
+/* ── FIRST-VISIT HINT ─────────────────────────── */
+#hint-overlay {
+  position: fixed; inset: 0; z-index: 400;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; opacity: 1;
+  transition: opacity .8s ease;
+}
+#hint-overlay.gone { opacity: 0; }
+.hint-pill {
+  background: rgba(18,18,18,.9);
+  border: 1px solid var(--g60);
+  backdrop-filter: blur(10px);
+  padding: 16px 28px;
+  display: flex; align-items: center; gap: 14px;
+}
+.hint-pill svg { width: 18px; height: 18px; color: var(--g20); flex-shrink: 0; }
+.hint-text {
+  font-size: .6rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--g20);
+  line-height: 1.7;
+}
+.hint-text span {
+  display: block;
+  font-size: .52rem;
+  color: var(--g40);
+}
+
+/* ── BUTTONS ──────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 28px;
+  font-family: 'DM Mono', monospace;
+  font-size: .65rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.btn-outline {
+  border: 1px solid var(--g40);
+  color: var(--white);
+  background: transparent;
+}
+.btn-outline:hover { background: var(--white); color: var(--black); border-color: var(--white); }
+.btn-solid { background: var(--white); color: var(--black); }
+.btn-solid:hover { background: var(--g10); }
+
+/* ── HERO ─────────────────────────────────────── */
+#hero { background: var(--g90); }
+
+/*
+  Layout: video fills right side, gradient wipes left.
+  Text lives in the left column.
+*/
+.hero-video-wrap {
+  position: absolute; inset: 0;
+  display: flex;
+}
+/* Left solid zone that text sits on — gradient fades into video */
+.hero-video-wrap::after {
+  content: '';
+  position: absolute; inset: 0;
+  /* Gradient: opaque black on left where text lives, fades to nothing on right */
+  background: linear-gradient(
+    to right,
+    rgba(10,10,10,1)   0%,
+    rgba(10,10,10,.94) 28%,
+    rgba(10,10,10,.55) 52%,
+    rgba(10,10,10,.08) 75%,
+    rgba(10,10,10,0)   100%
+  );
+  z-index: 1;
+}
+/* Still fallback image — sits right half */
+.hero-bg-img {
+  position: absolute;
+  top: 0; right: 0;
+  width: 62%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  opacity: .7;
+  display: block;
+}
+/* Video — overlays same right-side area */
+.hero-video {
+  position: absolute;
+  top: 0; right: 0;
+  width: 62%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+  z-index: 0;
+}
+.hero-video.loaded { opacity: .8; }
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 48px;
+  max-width: 580px;
+  width: 100%;
+}
+.hero-tag {
+  font-size: .6rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--g20);
+  margin-bottom: 24px;
+}
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.2rem, 6vw, 6.5rem);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  color: var(--white);
+  margin-bottom: 28px;
+}
+.hero-sub {
+  font-size: .72rem;
+  line-height: 1.8;
+  color: var(--g20);
+  max-width: 380px;
+  margin-bottom: 40px;
+}
+.hero-scroll-hint {
+  position: absolute;
+  right: 48px; bottom: 40px; z-index: 2;
+  display: flex; align-items: center; gap: 12px;
+  font-size: .58rem;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--g40);
+}
+.hero-scroll-hint svg { width: 32px; height: 10px; }
+
+/* ── ABOUT ────────────────────────────────────── */
+#about { background: var(--white); color: var(--black); }
+.about-inner { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+.about-photo {
+  background-image: url('src/images/about founder.jpg');
+  background-size: cover;
+  background-position: top center;
+  filter: grayscale(100%);
+  position: relative;
+}
+.about-photo::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent 60%, rgba(245,245,243,.6));
+}
+.about-text {
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 80px 64px;
+}
+.section-label {
+  font-size: .58rem;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  color: var(--g40);
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.2rem, 3.5vw, 3.8rem);
+  font-weight: 300;
+  line-height: 1.1;
+  margin-bottom: 28px;
+  color: var(--black);
+}
+.body-text {
+  font-size: .72rem;
+  line-height: 1.9;
+  color: var(--g60);
+  max-width: 440px;
+  margin-bottom: 32px;
+}
+
+/* ── SERVICES ─────────────────────────────────── */
+#services { background: var(--g90); }
+.services-inner {
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 100px 80px;
+  width: 100%;
+}
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--g60);
+  border: 1px solid var(--g60);
+  margin-top: 48px;
+}
+.service-card {
+  background: var(--g90);
+  padding: 36px 28px;
+  display: flex; flex-direction: column; gap: 16px;
+  transition: background .25s;
+  cursor: default;
+}
+.service-card:hover { background: var(--g80); }
+.service-icon { width: 36px; height: 36px; color: var(--g20); }
+.service-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; font-weight: 400;
+  color: var(--white); line-height: 1.2;
+}
+.service-desc { font-size: .63rem; line-height: 1.8; color: var(--g40); }
+
+/* ── PROJECTS ─────────────────────────────────── */
+#projects { background: var(--black); }
+.projects-inner { display: flex; width: 100%; height: 100vh; }
+.projects-sidebar {
+  flex: 0 0 320px;
+  border-right: 1px solid var(--g80);
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 80px 48px;
+}
+.projects-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--g80);
+}
+.project-tile {
+  position: relative; overflow: hidden;
+  cursor: pointer; background: var(--g90);
+}
+.project-tile img,
+.project-tile .img-ph {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%);
+  display: block;
+  transition: transform .5s ease, filter .4s;
+}
+.project-tile .img-ph { background: var(--g80); }
+.project-tile:hover img,
+.project-tile:hover .img-ph { transform: scale(1.04); filter: grayscale(40%); }
+.project-tile-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(10,10,10,.85) 0%, transparent 60%);
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 20px;
+  opacity: 0; transition: opacity .3s;
+}
+.project-tile:hover .project-tile-overlay { opacity: 1; }
+.tile-category {
+  font-size: .55rem; letter-spacing: .25em;
+  text-transform: uppercase; color: var(--g20); margin-bottom: 6px;
+}
+.tile-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem; font-weight: 400; color: var(--white);
+}
+.tile-ar-controls {
+  display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+}
+.tile-ar-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: .52rem; letter-spacing: .18em; text-transform: uppercase;
+  cursor: pointer; border: none;
+  background: rgba(245,245,243,.12); color: var(--white);
+  backdrop-filter: blur(6px);
+  transition: background .2s; white-space: nowrap;
+}
+.tile-ar-btn:hover { background: rgba(245,245,243,.28); }
+.tile-ar-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.ar-badge {
+  position: absolute; top: 14px; right: 14px;
+  background: rgba(10,10,10,.75); border: 1px solid var(--g60);
+  padding: 4px 10px; font-size: .48rem; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--g20);
+  backdrop-filter: blur(6px); pointer-events: none;
+}
+
+/* ── CONTACT ──────────────────────────────────── */
+#contact { background: var(--white); color: var(--black); }
+.contact-inner {
+  display: grid; grid-template-columns: 1fr 1fr;
+  width: 100%; height: 100%;
+}
+.contact-map {
+  background-image: url('src/images/zambia map.jpg');
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(100%);
+  position: relative;
+}
+.contact-map::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to right, transparent, rgba(245,245,243,.5));
+}
+.contact-form-area {
+  display: flex; flex-direction: column;
+  justify-content: center;
+  padding: 80px 64px;
+}
+.contact-details { display: flex; flex-direction: column; gap: 18px; margin: 28px 0 40px; }
+.contact-row {
+  display: flex; align-items: center; gap: 14px;
+  font-size: .68rem; color: var(--g60);
+}
+.contact-row svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--g40); }
+.contact-row a { color: var(--g60); text-decoration: none; }
+.contact-row a:hover { color: var(--black); }
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.field { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: .55rem; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--g40);
+}
+.field input, .field textarea {
+  background: transparent;
+  border: 1px solid var(--g10);
+  padding: 11px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: .68rem;
+  color: var(--black);
+  outline: none; resize: none;
+  transition: border-color .2s;
+}
+.field input:focus, .field textarea:focus { border-color: var(--g60); }
+.field textarea { height: 80px; }
+
+/* ── FOOTER STRIP ─────────────────────────────── */
+.footer-strip {
+  position: fixed;
+  bottom: 52px; right: 48px;
+  z-index: 99;
+  font-size: .58rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--g60);
+}
+
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+</style>
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <p id="preloader-brand">Ntalasha Architects</p>
+  <p id="preloader-status">Loading experience…</p>
+</div>
+
+<!-- NAV -->
+<nav id="nav" class="nav-hidden" style="opacity:0;transition:opacity .6s ease .2s">
+  <a class="nav-logo" href="#">Ntalasha Architects</a>
+  <ul class="nav-links">
+    <li><a onclick="goTo(0)">Home</a></li>
+    <li><a onclick="goTo(1)">About</a></li>
+    <li><a onclick="goTo(2)">Services</a></li>
+    <li><a onclick="goTo(3)">Projects</a></li>
+    <li><a onclick="goTo(4)">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- PROGRESS BAR -->
+<div id="progress"></div>
+
+<!-- FIRST-VISIT HINT -->
+<div id="hint-overlay">
+  <div class="hint-pill">
+    <svg viewBox="0 0 18 28" fill="none" stroke="currentColor" stroke-width="1.4">
+      <rect x="1" y="1" width="16" height="26" rx="8"/>
+      <line x1="9" y1="6" x2="9" y2="11" stroke-linecap="round"/>
+    </svg>
+    <div class="hint-text">
+      Scroll down to navigate
+      <span>Swipe left / right on touch</span>
+    </div>
+  </div>
+</div>
+
+<!-- COMPASS (preloader centre → settles bottom-centre) -->
+<div id="compass" class="preloading">
+  <svg id="compass-svg" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="28" cy="28" r="26" stroke="#3a3a3a" stroke-width="1"/>
+    <line x1="28" y1="2"  x2="28" y2="7"  stroke="#6b6b6b" stroke-width="1"/>
+    <line x1="54" y1="28" x2="49" y2="28" stroke="#6b6b6b" stroke-width="1"/>
+    <line x1="28" y1="54" x2="28" y2="49" stroke="#6b6b6b" stroke-width="1"/>
+    <line x1="2"  y1="28" x2="7"  y2="28" stroke="#6b6b6b" stroke-width="1"/>
+    <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(45,28,28)"/>
+    <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(135,28,28)"/>
+    <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(225,28,28)"/>
+    <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(315,28,28)"/>
+    <text x="28" y="13.5" text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#b0b0b0">N</text>
+    <text x="43"  y="29.5" text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#3a3a3a">E</text>
+    <text x="28" y="46"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#3a3a3a">S</text>
+    <text x="13"  y="29.5" text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#3a3a3a">W</text>
+    <g id="compass-needle" style="transform-origin:28px 28px">
+      <polygon points="28,10 31,28 28,25 25,28" fill="#f5f5f3"/>
+      <polygon points="28,46 31,28 28,31 25,28" fill="#3a3a3a"/>
+      <circle cx="28" cy="28" r="2" fill="#f5f5f3"/>
+      <circle cx="28" cy="28" r="1" fill="#0a0a0a"/>
+    </g>
+  </svg>
+  <div id="compass-label">N — Begin</div>
+</div>
+
+<!-- SCROLL ROOT -->
+<div id="scroll-root">
+  <div id="track">
+
+    <!-- 0 · HERO ─────────────────────────────────────── -->
+    <section class="panel" id="hero">
+      <div class="hero-video-wrap">
+        <!-- Still fallback (right side) -->
+        <img class="hero-bg-img" src="src/images/hero background.jpg"
+             alt="Ntalasha Architects"
+             onerror="this.style.opacity='0'"/>
+        <!--
+          Hero video (right side, reveals over the still on load)
+          Replace src/video/hero reel.mp4 and src/video/hero reel.webm
+        -->
+        <video class="hero-video" id="hero-vid"
+               autoplay muted loop playsinline
+               poster="src/images/hero background.jpg"
+               oncanplay="this.classList.add('loaded')">
+          <source src="src/video/hero reel.webm" type="video/webm">
+          <source src="src/video/hero reel.mp4"  type="video/mp4">
+        </video>
+      </div>
+
+      <div class="hero-content">
+        <p class="hero-tag">Architecture · Lusaka, Zambia</p>
+        <h1 class="hero-title">Space.<br>Craft.<br>Purpose.</h1>
+        <p class="hero-sub">We design built environments that elevate daily life — from intimate residences to landmark civic structures across Zambia and beyond.</p>
+        <div style="display:flex;gap:14px;flex-wrap:wrap">
+          <button class="btn btn-solid" onclick="goTo(3)">View Projects</button>
+          <button class="btn btn-outline" onclick="goTo(4)">Get in Touch</button>
+        </div>
+      </div>
+
+      <div class="hero-scroll-hint">
+        <span>Scroll to explore</span>
+        <svg viewBox="0 0 32 10" fill="none" stroke="currentColor" stroke-width="1.2">
+          <line x1="0" y1="5" x2="28" y2="5"/>
+          <polyline points="24,1 28,5 24,9"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- 1 · ABOUT ─────────────────────────────────────── -->
+    <section class="panel" id="about">
+      <div class="about-inner" style="width:100%;height:100%">
+        <div class="about-photo"></div>
+        <div class="about-text">
+          <p class="section-label">About the Practice</p>
+          <h2 class="section-title" style="color:var(--black)">Architecture with intention.</h2>
+          <p class="body-text">Ntalasha Architects is a Lusaka-based studio committed to contextual design — buildings that respond to climate, culture, and community. We partner with clients from first sketch to final handover, ensuring every decision serves both beauty and utility.</p>
+          <p class="body-text" style="margin-top:-16px">Our approach is collaborative, rigorous, and rooted in the belief that exceptional architecture is accessible — not a luxury reserved for the few.</p>
+          <div style="display:flex;gap:32px;margin-top:8px">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--black);line-height:1">80<span style="font-size:1.2rem;color:var(--g40)">+</span></div>
+              <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Projects</div>
+            </div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--black);line-height:1">12<span style="font-size:1.2rem;color:var(--g40)">+</span></div>
+              <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Awards</div>
+            </div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--black);line-height:1">100<span style="font-size:1.2rem;color:var(--g40)">%</span></div>
+              <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Client Satisfaction</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 · SERVICES ──────────────────────────────────── -->
+    <section class="panel" id="services">
+      <div class="services-inner">
+        <p class="section-label">What We Do</p>
+        <h2 class="section-title" style="color:var(--white)">Our services</h2>
+        <div class="services-grid">
+
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="6" y="8" width="16" height="22" rx="1"/>
+              <rect x="22" y="14" width="8" height="16" rx="1"/>
+              <line x1="6" y1="30" x2="30" y2="30"/>
+              <rect x="10" y="12" width="4" height="4"/>
+              <rect x="16" y="12" width="4" height="4"/>
+              <rect x="10" y="20" width="4" height="4"/>
+              <rect x="16" y="20" width="4" height="4"/>
+            </svg>
+            <div class="service-name">Architectural Design</div>
+            <div class="service-desc">Concept through construction documentation for residential, commercial, and civic projects.</div>
+          </div>
+
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="5" y="9" width="26" height="18" rx="1"/>
+              <line x1="5" y1="16" x2="31" y2="16"/>
+              <line x1="14" y1="9" x2="14" y2="27"/>
+              <circle cx="9.5" cy="12.5" r="1.5"/>
+            </svg>
+            <div class="service-name">Interior Design</div>
+            <div class="service-desc">Spatial planning and material selection that bring coherence to every room.</div>
+          </div>
+
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.4">
+              <rect x="4"  y="4"  width="12" height="12" rx="1"/>
+              <rect x="20" y="4"  width="12" height="12" rx="1"/>
+              <rect x="4"  y="20" width="12" height="12" rx="1"/>
+              <rect x="20" y="20" width="12" height="12" rx="1"/>
+            </svg>
+            <div class="service-name">Urban Masterplanning</div>
+            <div class="service-desc">Land-use strategy and mixed-use development frameworks at neighbourhood scale.</div>
+          </div>
+
+          <div class="service-card">
+            <svg class="service-icon" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="18" cy="18" r="12"/>
+              <line x1="18" y1="6"  x2="18" y2="12"/>
+              <line x1="18" y1="24" x2="18" y2="30"/>
+              <line x1="6"  y1="18" x2="12" y2="18"/>
+              <line x1="24" y1="18" x2="30" y2="18"/>
+              <circle cx="18" cy="18" r="3"/>
+            </svg>
+            <div class="service-name">Project Management</div>
+            <div class="service-desc">End-to-end oversight of cost, programme, and quality on site.</div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · PROJECTS (wide panel) ─────────────────────── -->
+    <section class="panel panel--wide" id="projects">
+      <div class="projects-inner">
+        <div class="projects-sidebar">
+          <p class="section-label">Selected Work</p>
+          <h2 class="section-title" style="color:var(--white);font-size:clamp(1.8rem,2.5vw,3rem)">Built &amp;<br>envisioned.</h2>
+          <p class="body-text" style="color:var(--g40);margin-top:16px">A cross-section of our portfolio — hover each project to reveal details and launch AR / 3D views.</p>
+        </div>
+        <div class="projects-grid">
+
+          <!-- Project 1 — Residential Villa -->
+          <div class="project-tile">
+            <img src="src/images/project 1.jpg" alt="Residential Villa"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="img-ph" style="display:none"></div>
+            <span class="ar-badge">AR + 3D</span>
+            <div class="project-tile-overlay">
+              <span class="tile-category">Institutional</span>
+              <span class="tile-name">Institutional Complex</span>
+              <div class="tile-ar-controls">
+                <button class="tile-ar-btn" onclick="launchAR('ar1','Residential Villa',event)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <rect x="5" y="1" width="7" height="12" rx="1.5"/>
+                    <polyline points="7,7 7,5 8.5,5"/><polyline points="10,5 11.5,5 11.5,7"/>
+                    <polyline points="11.5,10 11.5,11.5 10,11.5"/><polyline points="7,11.5 5.5,11.5 5.5,10"/>
+                  </svg>
+                  View in AR
+                </button>
+                <button class="tile-ar-btn" onclick="launchAR('ar1','Residential Villa',event,true)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <path d="M2 5l6-3 6 3v6l-6 3-6-3V5z"/>
+                    <line x1="8" y1="2" x2="8" y2="8"/>
+                    <line x1="2" y1="5" x2="8" y2="8"/>
+                    <line x1="14" y1="5" x2="8" y2="8"/>
+                  </svg>
+                  3D Model
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 2 — Corporate HQ -->
+          <div class="project-tile">
+            <img src="src/images/project 2.jpg" alt="Corporate HQ"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="img-ph" style="display:none"></div>
+            <span class="ar-badge">AR + 3D</span>
+            <div class="project-tile-overlay">
+              <span class="tile-category">Commercial</span>
+              <span class="tile-name">Corporate Headquarters</span>
+              <div class="tile-ar-controls">
+                <button class="tile-ar-btn" onclick="launchAR('ar2','Corporate Headquarters',event)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <rect x="5" y="1" width="7" height="12" rx="1.5"/>
+                    <polyline points="7,7 7,5 8.5,5"/><polyline points="10,5 11.5,5 11.5,7"/>
+                    <polyline points="11.5,10 11.5,11.5 10,11.5"/><polyline points="7,11.5 5.5,11.5 5.5,10"/>
+                  </svg>
+                  View in AR
+                </button>
+                <button class="tile-ar-btn" onclick="launchAR('ar2','Corporate Headquarters',event,true)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <path d="M2 5l6-3 6 3v6l-6 3-6-3V5z"/>
+                    <line x1="8" y1="2" x2="8" y2="8"/>
+                    <line x1="2" y1="5" x2="8" y2="8"/>
+                    <line x1="14" y1="5" x2="8" y2="8"/>
+                  </svg>
+                  3D Model
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 3 — Mixed-Use -->
+          <div class="project-tile">
+            <img src="src/images/project 3.jpg" alt="Mixed-Use Development"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="img-ph" style="display:none"></div>
+            <span class="ar-badge">AR + 3D</span>
+            <div class="project-tile-overlay">
+              <span class="tile-category">Mixed-Use</span>
+              <span class="tile-name">Mixed-Use Development</span>
+              <div class="tile-ar-controls">
+                <button class="tile-ar-btn" onclick="launchAR('ar3','Mixed-Use Development',event)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <rect x="5" y="1" width="7" height="12" rx="1.5"/>
+                    <polyline points="7,7 7,5 8.5,5"/><polyline points="10,5 11.5,5 11.5,7"/>
+                    <polyline points="11.5,10 11.5,11.5 10,11.5"/><polyline points="7,11.5 5.5,11.5 5.5,10"/>
+                  </svg>
+                  View in AR
+                </button>
+                <button class="tile-ar-btn" onclick="launchAR('ar3','Mixed-Use Development',event,true)">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <path d="M2 5l6-3 6 3v6l-6 3-6-3V5z"/>
+                    <line x1="8" y1="2" x2="8" y2="8"/>
+                    <line x1="2" y1="5" x2="8" y2="8"/>
+                    <line x1="14" y1="5" x2="8" y2="8"/>
+                  </svg>
+                  3D Model
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 4 -->
+          <div class="project-tile">
+            <img src="src/images/project 4.jpg" alt="Institutional Complex"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="img-ph" style="display:none"></div>
+            <div class="project-tile-overlay">
+              <span class="tile-category">Institutional</span>
+              <span class="tile-name">Institutional Complex</span>
+            </div>
+          </div>
+
+          <!-- Project 5 -->
+          <div class="project-tile">
+            <img src="src/images/project 5.jpg" alt="Landscape Masterplan"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="img-ph" style="display:none"></div>
+            <div class="project-tile-overlay">
+              <span class="tile-category">Landscape</span>
+              <span class="tile-name">Landscape Masterplan</span>
+            </div>
+          </div>
+
+          <!-- Project 6 -->
+          <div class="project-tile">
+            <img src="src/images/project 6.jpg" alt="Interior Design Suite"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <div class="img-ph" style="display:none"></div>
+            <div class="project-tile-overlay">
+              <span class="tile-category">Interior</span>
+              <span class="tile-name">Interior Design Suite</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 · CONTACT ────────────────────────────────────── -->
+    <section class="panel" id="contact">
+      <div class="contact-inner">
+        <div class="contact-map"></div>
+        <div class="contact-form-area">
+          <p class="section-label" style="color:var(--g40)">Get in Touch</p>
+          <h2 class="section-title" style="color:var(--black)">Let's build<br>something together.</h2>
+
+          <div class="contact-details">
+            <div class="contact-row">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M2 2.5a1.5 1.5 0 011.5-1.5h1a1.5 1.5 0 011.5 1.5v.5a1.5 1.5 0 01-1.5 1.5H4a6 6 0 006 6v-.5A1.5 1.5 0 0111.5 10h.5a1.5 1.5 0 011.5 1.5v1A1.5 1.5 0 0112 14C6.5 14 2 9.5 2 4v-1.5z"/>
+              </svg>
+              <a href="tel:tel:+260977869624">+260 977 869 624</a>
+            </div>
+            <div class="contact-row">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <rect x="1" y="3" width="14" height="10" rx="1.5"/>
+                <polyline points="1,3 8,9.5 15,3"/>
+              </svg>
+              <a href="mailto:mailto:natalashaarchitect@gmail.com">natalashaarchitect@gmail.com</a>
+            </div>
+            <div class="contact-row">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <path d="M8 1.5a4.5 4.5 0 014.5 4.5c0 3-4.5 8.5-4.5 8.5S3.5 9 3.5 6A4.5 4.5 0 018 1.5z"/>
+                <circle cx="8" cy="6" r="1.5"/>
+              </svg>
+              <span>Lusaka, Zambia</span>
+            </div>
+            <div class="contact-row">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
+                <circle cx="8" cy="8" r="6.5"/>
+                <path d="M5.5 5.5s-.5 1 0 2.5 2.5 2.5 2.5 2.5 1-.5 1.5-.5"/>
+                <path d="M10 10.5l1.5 1"/>
+              </svg>
+              <a href="https://wa.me/https://wa.me/260977869624" target="_blank">WhatsApp Us</a>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Name</label>
+              <input type="text" placeholder="Your name">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" placeholder="your@email.com">
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:16px">
+            <label>Message</label>
+            <textarea placeholder="Tell us about your project…"></textarea>
+          </div>
+          <button class="btn btn-solid" style="width:fit-content" onclick="handleSend()">Send Message</button>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- #track -->
+</div><!-- #scroll-root -->
+
+<!-- FOOTER STRIP -->
+<div class="footer-strip">© 2025 Ntalasha Architects · Lusaka, Zambia</div>
+
+<!-- TOAST -->
+<div id="toast">Message sent — we'll be in touch.</div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   PRELOADER
+════════════════════════════════════════════════════ */
+const preloader  = document.getElementById('preloader');
+const compass    = document.getElementById('compass');
+const nav        = document.getElementById('nav');
+const needle     = document.getElementById('compass-needle');
+
+let spinDeg = 0, spinRaf = null;
+function spinNeedle() {
+  spinDeg += 2.4;
+  if (needle) needle.style.transform = `rotate(${spinDeg}deg)`;
+  spinRaf = requestAnimationFrame(spinNeedle);
+}
+spinNeedle();
+
+function runPreloaderOut() {
+  cancelAnimationFrame(spinRaf);
+  if (needle) { needle.style.transition = 'transform .5s cubic-bezier(.4,0,.2,1)'; needle.style.transform = 'rotate(0deg)'; }
+  setTimeout(() => {
+    if (needle) { needle.style.transition = 'none'; needle.style.transform = 'rotate(0deg)'; }
+    compass.classList.remove('preloading');
+    compass.classList.add('settled');
+    preloader.classList.add('fade-out');
+    nav.style.opacity = '';
+    nav.style.transition = '';
+    nav.classList.remove('nav-hidden');
+    nav.classList.add('nav-visible');
+    setTimeout(() => { if (typeof compassTick === 'function') requestAnimationFrame(compassTick); }, 950);
+    setTimeout(() => { preloader.style.display = 'none'; compass.style.zIndex = '110'; }, 800);
+  }, 520);
+}
+
+let minTimePassed = false, pageLoaded = false;
+setTimeout(() => { minTimePassed = true; if (pageLoaded) runPreloaderOut(); }, 1800);
+window.addEventListener('load', () => { pageLoaded = true; if (minTimePassed) runPreloaderOut(); });
+
+/* ════════════════════════════════════════════════════
+   FLUID HORIZONTAL SCROLL ENGINE
+════════════════════════════════════════════════════ */
+const track      = document.getElementById('track');
+const progress   = document.getElementById('progress');
+const compassEl  = document.getElementById('compass');
+const needleEl   = document.getElementById('compass-needle');
+const compassLbl = document.getElementById('compass-label');
+const hintOvl    = document.getElementById('hint-overlay');
+const navEl      = document.getElementById('nav');
+
+const panelLabels = ['N — Home','NE — About','E — Services','SE — Projects','S — Contact'];
+
+let hintDismissed = false, compassDeg = 0, targetDeg = 0;
+function dismissHint() {
+  if (hintDismissed) return;
+  hintDismissed = true;
+  hintOvl.classList.add('gone');
+  setTimeout(() => { hintOvl.style.display = 'none'; }, 900);
+}
+
+let targetX = 0, currentX = 0, maxX = 0, rafId = null;
+const EASE = 0.072;
+let velocity = 0, lastTouch = null;
+let navVisible = true, navHideTimer = null, isScrolling = false, scrollStopTimer = null;
+
+function navShow() {
+  if (navVisible) return;
+  navVisible = true;
+  navEl.classList.remove('nav-hidden');
+  navEl.classList.add('nav-visible');
+}
+function navHideDelayed() {
+  clearTimeout(navHideTimer);
+  navHideTimer = setTimeout(() => {
+    navVisible = false;
+    navEl.classList.remove('nav-visible');
+    navEl.classList.add('nav-hidden');
+  }, 1800);
+}
+function onScrollStart() {
+  dismissHint();
+  navShow();
+  navHideDelayed();
+  isScrolling = true;
+  clearTimeout(scrollStopTimer);
+  scrollStopTimer = setTimeout(() => { isScrolling = false; }, 120);
+}
+
+function totalWidth() { return Array.from(track.children).reduce((s,p) => s + p.offsetWidth, 0); }
+function clamp(v,lo,hi) { return Math.max(lo, Math.min(hi, v)); }
+function syncMax() { maxX = Math.max(0, totalWidth() - window.innerWidth); }
+
+function compassTick() {
+  const diff = targetDeg - compassDeg;
+  if (Math.abs(diff) > 0.05) { compassDeg += diff * 0.18; }
+  else { compassDeg = targetDeg; }
+  if (needleEl) needleEl.style.transform = `rotate(${compassDeg}deg)`;
+  requestAnimationFrame(compassTick);
+}
+
+let compassScrollTimer = null;
+function updateUI(x) {
+  const pct = maxX > 0 ? x / maxX : 0;
+  progress.style.width = (pct * 100) + '%';
+  targetDeg = pct * 270;
+  const panels = Array.from(track.children);
+  let cumX = 0, active = 0;
+  for (let i = 0; i < panels.length; i++) {
+    if (x >= cumX - window.innerWidth * 0.35) active = i;
+    cumX += panels[i].offsetWidth;
+  }
+  if (compassLbl) compassLbl.textContent = panelLabels[active] || '';
+  if (compassEl)  compassEl.classList.toggle('hidden', pct > 0.97);
+  if (compassEl) {
+    compassEl.classList.add('scrolling');
+    clearTimeout(compassScrollTimer);
+    compassScrollTimer = setTimeout(() => { if (compassEl) compassEl.classList.remove('scrolling'); }, 600);
+  }
+  const speed = Math.abs(velocity);
+  const blurPx = Math.min(speed * 0.018, 5);
+  if (blurPx > 0.3) track.style.filter = `blur(${blurPx.toFixed(2)}px) brightness(${(1 + Math.min(speed * 0.0006, 0.08)).toFixed(3)})`;
+  else track.style.filter = '';
+}
+
+/* ── RAF tick with sound on rest ── */
+let soundPending = false;
+let audioCtx = null, scrollAudio = null, lastPlayTime = 0, scrollSoundTimer = null;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  /*
+    SCROLL CLICK SOUND
+    Reference: src/sound/scroll click.mp3  (also src/sound/scroll click.ogg as fallback)
+    iPod-style soft mechanical click that plays each time scrolling comes to rest.
+    If the file is absent the Web Audio synth below fires automatically.
+  */
+  scrollAudio = new Audio('src/sound/scroll click.mp3');
+  scrollAudio.volume = 0.22;
+  scrollAudio.preload = 'auto';
+}
+
+function playSynthScroll() {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  if (now - lastPlayTime < 0.18) return;
+  lastPlayTime = now;
+  /* Low body thud */
+  const o1 = audioCtx.createOscillator(), g1 = audioCtx.createGain();
+  o1.type = 'sine';
+  o1.frequency.setValueAtTime(90, now);
+  o1.frequency.exponentialRampToValueAtTime(30, now + 0.12);
+  g1.gain.setValueAtTime(0.18, now);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+  o1.connect(g1); g1.connect(audioCtx.destination);
+  o1.start(now); o1.stop(now + 0.15);
+  /* High silk tick */
+  const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
+  o2.type = 'sine';
+  o2.frequency.setValueAtTime(3200, now);
+  o2.frequency.exponentialRampToValueAtTime(800, now + 0.06);
+  g2.gain.setValueAtTime(0.06, now);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+  o2.connect(g2); g2.connect(audioCtx.destination);
+  o2.start(now); o2.stop(now + 0.08);
+}
+
+function playScrollSound() {
+  if (!audioCtx) initAudio();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  if (scrollAudio && scrollAudio.readyState >= 2) {
+    const now = performance.now() / 1000;
+    if (now - lastPlayTime < 0.18) return;
+    lastPlayTime = now;
+    scrollAudio.currentTime = 0;
+    scrollAudio.play().catch(() => playSynthScroll());
+  } else {
+    playSynthScroll();
+  }
+}
+
+function tick() {
+  velocity *= 0.88;
+  targetX   = clamp(targetX + velocity, 0, maxX);
+  const diff = targetX - currentX;
+  if (Math.abs(diff) < 0.04 && Math.abs(velocity) < 0.04) {
+    currentX = targetX;
+    track.style.transform = `translateX(${-currentX}px)`;
+    track.style.filter    = '';
+    updateUI(currentX);
+    if (soundPending) {
+      soundPending = false;
+      clearTimeout(scrollSoundTimer);
+      scrollSoundTimer = setTimeout(playScrollSound, 40);
+    }
+    rafId = null;
+    return;
+  }
+  currentX += diff * EASE;
+  track.style.transform = `translateX(${-currentX}px)`;
+  updateUI(currentX);
+  rafId = requestAnimationFrame(tick);
+}
+
+function startRaf() { if (!rafId) rafId = requestAnimationFrame(tick); }
+
+/* ── Input listeners ── */
+window.addEventListener('wheel', e => {
+  e.preventDefault();
+  onScrollStart();
+  soundPending = true;
+  let delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
+  if (e.deltaMode === 1) delta *= 28;
+  if (e.deltaMode === 2) delta *= 400;
+  delta = clamp(delta, -120, 120);
+  velocity += delta * 0.55;
+  targetX = clamp(targetX, 0, maxX);
+  startRaf();
+}, { passive: false });
+
+window.addEventListener('touchstart', e => {
+  lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  velocity  = 0;
+  onScrollStart();
+}, { passive: true });
+
+window.addEventListener('touchmove', e => {
+  if (!lastTouch) return;
+  const dx = lastTouch.x - e.touches[0].clientX;
+  const dy = lastTouch.y - e.touches[0].clientY;
+  const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy * 0.8;
+  lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  velocity  = delta * 1.2;
+  targetX   = clamp(targetX + delta, 0, maxX);
+  soundPending = true;
+  startRaf();
+}, { passive: true });
+
+window.addEventListener('touchend', () => { lastTouch = null; });
+
+window.addEventListener('keydown', e => {
+  const step = window.innerWidth * 0.6;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { targetX = clamp(targetX + step, 0, maxX); onScrollStart(); soundPending = true; }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { targetX = clamp(targetX - step, 0, maxX); onScrollStart(); soundPending = true; }
+  startRaf();
+});
+
+/* ── goTo ── */
+function goTo(idx) {
+  const panels = Array.from(track.children);
+  let cumX = 0;
+  for (let i = 0; i < idx; i++) cumX += panels[i].offsetWidth;
+  velocity = 0;
+  targetX  = clamp(cumX, 0, maxX);
+  soundPending = true;
+  navShow();
+  navHideDelayed();
+  startRaf();
+}
+
+function init() {
+  syncMax();
+  targetX  = clamp(targetX,  0, maxX);
+  currentX = clamp(currentX, 0, maxX);
+  startRaf();
+}
+
+document.body.style.overflow = 'hidden';
+document.body.style.height   = '100vh';
+window.addEventListener('resize', init);
+init();
+setTimeout(dismissHint, 4000);
+window.addEventListener('mousemove', () => { navShow(); navHideDelayed(); });
+
+/* ── Init audio on first gesture ── */
+window.addEventListener('wheel',      initAudio, { once: true, passive: true });
+window.addEventListener('touchstart', initAudio, { once: true, passive: true });
+window.addEventListener('keydown',    initAudio, { once: true });
+
+
+/* ── AR / 3D launcher ── */
+function launchAR(modelId, name, event, skipAR) {
+  if (event) event.stopPropagation();
+  const encoded = encodeURIComponent(name);
+  const mode    = skipAR ? '&mode=3d' : '';
+  window.open('ar-viewer.html?model=' + modelId + '&name=' + encoded + mode, '_blank',
+    'width=480,height=820,resizable=yes,scrollbars=no');
+}
+
+/* ── Contact form ── */
+function handleSend() {
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+/*
+════════════════════════════════════════════════════
+ MEDIA REFERENCE — src/ folder
+ All file names use spaces only, no special characters
+════════════════════════════════════════════════════
+
+FOLDER STRUCTURE:
+src/
+├── images/
+│   ├── hero background.jpg      Hero still fallback (1920x1080)
+│   │                             Right-side exterior or aerial shot
+│   ├── about founder.jpg        Founder portrait (800x1100 tall crop)
+│   │                             Face near top, full-bleed vertical
+│   ├── project 1.jpg            Residential Villa exterior (800x600)
+│   ├── project 2.jpg            Corporate HQ exterior (800x600)
+│   ├── project 3.jpg            Mixed-Use Development render (800x600)
+│   ├── project 4.jpg            Institutional Complex exterior (800x600)
+│   ├── project 5.jpg            Landscape Masterplan aerial (800x600)
+│   ├── project 6.jpg            Interior Design Suite (800x600)
+│   └── zambia map.jpg           Contact section (1200x900)
+│                                 Lusaka / Zambia map or aerial
+│
+├── video/
+│   ├── hero reel.mp4            Hero background loop (1920x1080, H.264)
+│   │                             Plays on the RIGHT side of hero panel
+│   │                             Muted autoplay, max 8MB, 15-30s loop
+│   └── hero reel.webm           Same clip in WebM/VP9 (Firefox fallback)
+│
+├── sound/
+│   ├── scroll click.mp3         iPod-style soft scroll click (<50KB)
+│   │                             Plays when horizontal scroll decelerates to rest
+│   │                             Web Audio API synth fires if file is missing
+│   └── scroll click.ogg         OGG fallback for older browsers
+│
+════════════════════════════════════════════════════
+*/
+</script>
+</body>
+</html>

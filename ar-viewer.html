@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AR Viewer — Ntalasha Architects</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:   #0a0a0a;
+    --gray-90: #111111;
+    --gray-80: #1e1e1e;
+    --gray-60: #3a3a3a;
+    --gray-40: #6b6b6b;
+    --gray-20: #b0b0b0;
+    --white:   #f5f5f3;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── Header bar ──────────────────────────────── */
+  #ar-header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    background: linear-gradient(to bottom, rgba(10,10,10,.9) 0%, transparent 100%);
+  }
+
+  .ar-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: .9rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--white);
+    text-decoration: none;
+  }
+
+  #project-name {
+    font-size: .58rem;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--gray-20);
+  }
+
+  #close-btn {
+    background: none;
+    border: 1px solid var(--gray-60);
+    color: var(--gray-20);
+    font-size: .6rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: background .2s, color .2s;
+  }
+  #close-btn:hover { background: var(--white); color: var(--black); }
+
+  /* ── Canvas ──────────────────────────────────── */
+  #three-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Bottom controls ─────────────────────────── */
+  #controls {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 200;
+    padding: 24px 28px 36px;
+    background: linear-gradient(to top, rgba(10,10,10,.92) 0%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  #mode-tabs {
+    display: flex;
+    gap: 1px;
+    background: var(--gray-60);
+    border: 1px solid var(--gray-60);
+  }
+
+  .mode-tab {
+    padding: 10px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: .58rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    background: var(--gray-90);
+    color: var(--gray-40);
+    transition: background .2s, color .2s;
+  }
+  .mode-tab.active {
+    background: var(--white);
+    color: var(--black);
+  }
+
+  #ar-hint {
+    font-size: .58rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gray-40);
+    text-align: center;
+    line-height: 1.7;
+    min-height: 36px;
+  }
+
+  /* ── AR reticle overlay ──────────────────────── */
+  #reticle-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity .4s;
+  }
+  #reticle-overlay.visible { opacity: 1; }
+
+  #reticle {
+    width: 64px;
+    height: 64px;
+    position: relative;
+  }
+
+  /* ── AR session button ───────────────────────── */
+  #start-ar-btn {
+    padding: 14px 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid var(--white);
+    background: transparent;
+    color: var(--white);
+    transition: background .2s, color .2s;
+    display: none;
+  }
+  #start-ar-btn:hover { background: var(--white); color: var(--black); }
+  #start-ar-btn.show { display: block; }
+
+  /* ── Loading screen ──────────────────────────── */
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    transition: opacity .6s;
+  }
+  #loader.fade { opacity: 0; pointer-events: none; }
+
+  .loader-ring {
+    width: 48px; height: 48px;
+    border: 1px solid var(--gray-60);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loader-text {
+    font-size: .6rem;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: var(--gray-40);
+  }
+
+  /* ── No AR support message ───────────────────── */
+  #no-ar-msg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--black);
+    z-index: 300;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px;
+    text-align: center;
+  }
+  #no-ar-msg.show { display: flex; }
+
+  /* ── Placed indicator ────────────────────────── */
+  #placed-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10,10,10,.85);
+    border: 1px solid var(--gray-60);
+    padding: 14px 28px;
+    font-size: .6rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--white);
+    pointer-events: none;
+    z-index: 180;
+    opacity: 0;
+    transition: opacity .4s;
+    backdrop-filter: blur(8px);
+  }
+  #placed-indicator.show { opacity: 1; }
+
+  /* ── Fonts ───────────────────────────────────── */
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-ring"></div>
+  <p class="loader-text">Preparing AR Experience</p>
+</div>
+
+<!-- NO AR SUPPORT -->
+<div id="no-ar-msg">
+  <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#6b6b6b" stroke-width="1.4">
+    <rect x="14" y="4" width="20" height="36" rx="3"/>
+    <line x1="14" y1="10" x2="34" y2="10"/>
+    <polyline points="19,20 19,15 24,15"/>
+    <polyline points="29,15 34,15 34,20"/>
+    <polyline points="34,28 34,33 29,33"/>
+    <polyline points="19,33 14,33 14,28"/>
+  </svg>
+  <p style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--white)">AR Not Available</p>
+  <p style="font-size:.65rem;line-height:1.9;color:var(--gray-40);max-width:300px">
+    WebXR AR requires a compatible Android device with Chrome, or iOS with a WebXR-enabled browser.
+    You are viewing the 3D model in desktop/orbit mode instead.
+  </p>
+  <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+    <button class="mode-tab active" onclick="document.getElementById('no-ar-msg').classList.remove('show')">Continue in 3D Mode</button>
+    <button class="mode-tab" onclick="goBackToSite()" style="border-left:1px solid var(--gray-60)">← Back to Site</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div id="ar-header">
+  <a class="ar-logo" href="#">Ntalasha Architects</a>
+  <span id="project-name">Loading…</span>
+  <button id="close-btn" onclick="goBackToSite()">✕ Close</button>
+</div>
+
+<!-- THREE.JS CANVAS -->
+<canvas id="three-canvas"></canvas>
+
+<!-- RETICLE (AR surface indicator) -->
+<div id="reticle-overlay">
+  <svg id="reticle" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="32" cy="32" rx="28" ry="10" stroke="white" stroke-width="1" stroke-dasharray="4 3" opacity="0.8"/>
+    <circle cx="32" cy="32" r="3" fill="white" opacity="0.9"/>
+    <line x1="32" y1="18" x2="32" y2="24" stroke="white" stroke-width="1" opacity="0.6"/>
+    <line x1="32" y1="40" x2="32" y2="46" stroke="white" stroke-width="1" opacity="0.6"/>
+    <line x1="18" y1="32" x2="24" y2="32" stroke="white" stroke-width="1" opacity="0.6"/>
+    <line x1="40" y1="32" x2="46" y2="32" stroke="white" stroke-width="1" opacity="0.6"/>
+  </svg>
+</div>
+
+<!-- PLACED INDICATOR -->
+<div id="placed-indicator">Model placed — walk around to explore</div>
+
+<!-- CONTROLS -->
+<div id="controls">
+  <div id="mode-tabs">
+    <button class="mode-tab active" id="tab-3d" onclick="setMode('3d')">3D View</button>
+    <button class="mode-tab" id="tab-ar" onclick="setMode('ar')">AR View</button>
+  </div>
+  <button id="start-ar-btn" onclick="startARSession()">Tap to Place in AR</button>
+  <p id="ar-hint">Drag to rotate · Pinch to zoom</p>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  Ntalasha Architects — AR Viewer
+//  Modes:
+//    3D  — Three.js orbit controls (works everywhere)
+//    AR  — WebXR immersive-ar with hit-test + surface placement
+// ═══════════════════════════════════════════════════════════
+
+// ── Navigation back to main site ─────────────────────────
+// Works whether opened as popup, new tab, or direct URL
+function goBackToSite() {
+  if (window.opener && !window.opener.closed) {
+    window.close();           // popup — just close
+  } else if (document.referrer) {
+    window.location.href = document.referrer;
+  } else {
+    window.location.href = 'Ntalasha_Architects.html';
+  }
+}
+
+// ── Read URL params ──────────────────────────────────────
+const params   = new URLSearchParams(window.location.search);
+const modelId  = params.get('model') || 'ar1';   // 'ar1' | 'ar2' | 'ar3'
+const projName = params.get('name')  || 'Architecture Model';
+
+document.getElementById('project-name').textContent = projName;
+document.title = projName + ' — AR Viewer';
+
+// ── Three.js setup ───────────────────────────────────────
+const canvas   = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.xr.enabled        = true;
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 1000);
+camera.position.set(4, 3, 6);
+
+// ── Lighting ─────────────────────────────────────────────
+const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+sun.position.set(5, 10, 7);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0xd0d8ff, 0.3);
+fill.position.set(-5, 3, -5);
+scene.add(fill);
+
+// ── Ground grid (3D mode only) ────────────────────────────
+const gridHelper = new THREE.GridHelper(20, 40, 0x222222, 0x1a1a1a);
+scene.add(gridHelper);
+
+// ── Build a procedural architecture model ────────────────
+//   Until real GLB files are in src/, we generate a
+//   convincing architectural massing from THREE primitives.
+//   When GLBs are available, swap in THREE.GLTFLoader.
+
+function buildArchModel(id) {
+  const group = new THREE.Group();
+
+  // Materials
+  const concreteMat = new THREE.MeshStandardMaterial({ color: 0xc8c4bc, roughness: 0.85, metalness: 0.0 });
+  const glassMat    = new THREE.MeshStandardMaterial({ color: 0x8ab0c8, roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.55 });
+  const darkMat     = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.7, metalness: 0.1 });
+  const accentMat   = new THREE.MeshStandardMaterial({ color: 0xf5f0e8, roughness: 0.9 });
+
+  if (id === 'ar1') {
+    // ── Residential Villa ──────────────────────────────
+    // Main body
+    const base = new THREE.Mesh(new THREE.BoxGeometry(3, 1.2, 2), concreteMat);
+    base.position.set(0, 0.6, 0);
+    base.castShadow = true; base.receiveShadow = true;
+    group.add(base);
+
+    // Upper floor setback
+    const upper = new THREE.Mesh(new THREE.BoxGeometry(2, 0.9, 1.6), accentMat);
+    upper.position.set(-0.2, 1.65, 0);
+    upper.castShadow = true;
+    group.add(upper);
+
+    // Flat roof overhang
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.08, 2.6), darkMat);
+    roof.position.set(0, 2.14, 0);
+    roof.castShadow = true;
+    group.add(roof);
+
+    // Glass facade strips (ground floor)
+    for (let i = -1; i <= 1; i++) {
+      const glass = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.0, 0.05), glassMat);
+      glass.position.set(i * 0.9, 0.6, 1.03);
+      group.add(glass);
+    }
+    // Upper glass strip
+    const glassU = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 0.05), glassMat);
+    glassU.position.set(-0.2, 1.65, 0.83);
+    group.add(glassU);
+
+    // Cantilevered deck
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.8), concreteMat);
+    deck.position.set(0.9, 1.2, 1.4);
+    deck.castShadow = true;
+    group.add(deck);
+
+    // Entry column pair
+    [-0.3, 0.3].forEach(x => {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.2, 8), darkMat);
+      col.position.set(x, 0.6, 1.4);
+      col.castShadow = true;
+      group.add(col);
+    });
+
+    // Shadow catcher (floor)
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 1, transparent: true, opacity: 0 }));
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    group.add(floor);
+
+  } else if (id === 'ar2') {
+    // ── Corporate HQ ──────────────────────────────────
+    // Podium
+    const podium = new THREE.Mesh(new THREE.BoxGeometry(4, 0.5, 3), concreteMat);
+    podium.position.set(0, 0.25, 0);
+    podium.castShadow = true; podium.receiveShadow = true;
+    group.add(podium);
+
+    // Tower A
+    const towerA = new THREE.Mesh(new THREE.BoxGeometry(1.4, 4.5, 1.4), glassMat);
+    towerA.position.set(-1.1, 2.75, 0);
+    towerA.castShadow = true;
+    group.add(towerA);
+
+    // Tower B (shorter, offset)
+    const towerB = new THREE.Mesh(new THREE.BoxGeometry(1, 3.2, 1), glassMat);
+    towerB.position.set(0.8, 2.1, 0.2);
+    towerB.castShadow = true;
+    group.add(towerB);
+
+    // Concrete fins on tower A
+    for (let y = 0; y < 6; y++) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.06, 0.1), concreteMat);
+      fin.position.set(-1.1, 0.6 + y * 0.65, 0.75);
+      group.add(fin);
+    }
+
+    // Entry atrium glass box
+    const atrium = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.8, 1.2), glassMat);
+    atrium.position.set(0, 0.9, 1.4);
+    group.add(atrium);
+
+    // Roof antenna
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 6), darkMat);
+    ant.position.set(-1.1, 5.4, 0);
+    group.add(ant);
+
+  } else {
+    // ar3 — ── Mixed-Use Development ─────────────────
+    // Base platform
+    const base = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, 3.5), concreteMat);
+    base.position.set(0, 0.15, 0);
+    base.castShadow = true; base.receiveShadow = true;
+    group.add(base);
+
+    // Block A — residential slab
+    const blockA = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.8, 1.2), accentMat);
+    blockA.position.set(-1.4, 1.7, 0);
+    blockA.castShadow = true;
+    group.add(blockA);
+
+    // Block B — commercial
+    const blockB = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.6, 3.2), glassMat);
+    blockB.position.set(0.6, 1.1, 0);
+    blockB.castShadow = true;
+    group.add(blockB);
+
+    // Block C — tower
+    const blockC = new THREE.Mesh(new THREE.BoxGeometry(0.9, 4, 0.9), darkMat);
+    blockC.position.set(1.8, 2.3, 0.4);
+    blockC.castShadow = true;
+    group.add(blockC);
+
+    // Connecting bridge
+    const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.1, 1.2), concreteMat);
+    bridge.position.set(-0.4, 2.5, 0);
+    bridge.castShadow = true;
+    group.add(bridge);
+
+    // Landscaped podium features (cylinders as trees)
+    const treeMat = new THREE.MeshStandardMaterial({ color: 0x4a6741, roughness: 1 });
+    [-1.8, -0.5, 0.8].forEach((x, i) => {
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 6), darkMat);
+      trunk.position.set(x, 0.45, -1.4);
+      group.add(trunk);
+      const crown = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), treeMat);
+      crown.position.set(x, 0.72, -1.4);
+      group.add(crown);
+    });
+  }
+
+  return group;
+}
+
+// ── Instantiate model ─────────────────────────────────────
+const archModel = buildArchModel(modelId);
+archModel.position.y = 0;
+scene.add(archModel);
+
+// ── Orbit controls (manual, lightweight) ─────────────────
+let isDragging = false, lastX = 0, lastY = 0;
+let rotY = 0.3, rotX = 0.3, zoom = 1.0;
+
+canvas.addEventListener('mousedown', e => { isDragging = true; lastX = e.clientX; lastY = e.clientY; });
+canvas.addEventListener('mouseup',   () => isDragging = false);
+canvas.addEventListener('mousemove', e => {
+  if (!isDragging || xrActive) return;
+  rotY += (e.clientX - lastX) * 0.006;
+  rotX += (e.clientY - lastY) * 0.004;
+  rotX  = Math.max(-0.5, Math.min(0.8, rotX));
+  lastX = e.clientX; lastY = e.clientY;
+});
+canvas.addEventListener('wheel', e => {
+  if (xrActive) return;
+  zoom *= e.deltaY > 0 ? 1.08 : 0.93;
+  zoom  = Math.max(0.4, Math.min(3, zoom));
+}, { passive: true });
+
+// Touch orbit
+let touchStart = [], pinchStart = 0;
+canvas.addEventListener('touchstart', e => {
+  if (xrActive) return;
+  if (e.touches.length === 1) { lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; isDragging = true; }
+  if (e.touches.length === 2) {
+    isDragging = false;
+    pinchStart = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+  }
+}, { passive: true });
+canvas.addEventListener('touchmove', e => {
+  if (xrActive) return;
+  if (e.touches.length === 1 && isDragging) {
+    rotY += (e.touches[0].clientX - lastX) * 0.007;
+    rotX += (e.touches[0].clientY - lastY) * 0.005;
+    rotX  = Math.max(-0.5, Math.min(0.8, rotX));
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  }
+  if (e.touches.length === 2) {
+    const d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    zoom *= pinchStart / d;
+    zoom  = Math.max(0.4, Math.min(3, zoom));
+    pinchStart = d;
+  }
+}, { passive: true });
+canvas.addEventListener('touchend', () => isDragging = false);
+
+// ── Update camera from orbit state ───────────────────────
+function updateOrbitCamera() {
+  const r = 8 * zoom;
+  camera.position.x = r * Math.sin(rotY) * Math.cos(rotX);
+  camera.position.y = r * Math.sin(rotX) + 1.5;
+  camera.position.z = r * Math.cos(rotY) * Math.cos(rotX);
+  camera.lookAt(0, 1, 0);
+}
+
+// ── WebXR AR setup ────────────────────────────────────────
+let xrSession    = null;
+let xrActive     = false;
+let hitTestSrc   = null;
+let reticleGroup = null;
+let modelPlaced  = false;
+let arModel      = null;
+
+// AR reticle mesh
+const reticleMesh = new THREE.Mesh(
+  new THREE.RingGeometry(0.08, 0.12, 32),
+  new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+);
+reticleMesh.rotation.x = -Math.PI / 2;
+reticleMesh.visible    = false;
+scene.add(reticleMesh);
+
+async function checkARSupport() {
+  if (!navigator.xr) return false;
+  try {
+    return await navigator.xr.isSessionSupported('immersive-ar');
+  } catch { return false; }
+}
+
+async function setMode(mode) {
+  document.getElementById('tab-3d').classList.toggle('active', mode === '3d');
+  document.getElementById('tab-ar').classList.toggle('active', mode === 'ar');
+
+  if (mode === 'ar') {
+    const supported = await checkARSupport();
+    if (supported) {
+      document.getElementById('start-ar-btn').classList.add('show');
+      document.getElementById('ar-hint').textContent = 'Point camera at a flat surface';
+      document.getElementById('reticle-overlay').classList.add('visible');
+    } else {
+      document.getElementById('no-ar-msg').classList.add('show');
+      document.getElementById('ar-hint').textContent = 'AR not supported on this device — use 3D mode';
+    }
+    gridHelper.visible = false;
+  } else {
+    // Back to 3D
+    gridHelper.visible = true;
+    document.getElementById('start-ar-btn').classList.remove('show');
+    document.getElementById('ar-hint').textContent = 'Drag to rotate · Pinch to zoom';
+    document.getElementById('reticle-overlay').classList.remove('visible');
+    if (xrSession) { xrSession.end(); xrSession = null; }
+    xrActive     = false;
+    modelPlaced  = false;
+    scene.background = new THREE.Color(0x0a0a0a);
+    archModel.visible = true;
+    archModel.position.set(0, 0, 0);
+  }
+}
+
+async function startARSession() {
+  try {
+    const session = await navigator.xr.requestSession('immersive-ar', {
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay'],
+      domOverlay: { root: document.body }
+    });
+
+    xrSession = session;
+    xrActive  = true;
+    renderer.xr.setSession(session);
+    scene.background = null;
+
+    // Hide 3D model until placed
+    archModel.visible = false;
+
+    // Set up hit test
+    session.addEventListener('select', onARSelect);
+
+    const refSpace = await session.requestReferenceSpace('viewer');
+    hitTestSrc = await session.requestHitTestSource({ space: refSpace });
+
+    document.getElementById('start-ar-btn').classList.remove('show');
+    document.getElementById('ar-hint').textContent = 'Move phone to detect surface · Tap to place';
+    document.getElementById('reticle-overlay').classList.add('visible');
+
+    session.addEventListener('end', () => {
+      xrActive = false;
+      xrSession = null;
+      hitTestSrc = null;
+      modelPlaced = false;
+      archModel.visible = true;
+      archModel.position.set(0, 0, 0);
+      reticleMesh.visible = false;
+      scene.background = new THREE.Color(0x0a0a0a);
+      setMode('3d');
+    });
+
+  } catch (err) {
+    console.error('AR session error:', err);
+    document.getElementById('ar-hint').textContent = 'Could not start AR — try reloading in Chrome on Android';
+  }
+}
+
+function onARSelect() {
+  if (!reticleMesh.visible) return;
+
+  if (!modelPlaced) {
+    // Clone the arch model at the reticle position
+    archModel.position.copy(reticleMesh.position);
+    archModel.quaternion.copy(reticleMesh.quaternion);
+    archModel.scale.setScalar(0.3); // scale for real-world AR
+    archModel.visible = true;
+    modelPlaced = true;
+    reticleMesh.visible = false;
+    document.getElementById('reticle-overlay').classList.remove('visible');
+    document.getElementById('ar-hint').textContent = 'Walk around to explore the design';
+
+    const ind = document.getElementById('placed-indicator');
+    ind.classList.add('show');
+    setTimeout(() => ind.classList.remove('show'), 3200);
+  }
+}
+
+// ── Render loop ───────────────────────────────────────────
+renderer.setAnimationLoop((timestamp, frame) => {
+
+  if (frame && xrActive && hitTestSrc) {
+    const refSpace = renderer.xr.getReferenceSpace();
+    const hits     = frame.getHitTestResults(hitTestSrc);
+
+    if (hits.length > 0 && !modelPlaced) {
+      const pose = hits[0].getPose(refSpace);
+      reticleMesh.visible = true;
+      reticleMesh.matrix.fromArray(pose.transform.matrix);
+      reticleMesh.matrix.decompose(reticleMesh.position, reticleMesh.quaternion, reticleMesh.scale);
+    } else if (!modelPlaced) {
+      reticleMesh.visible = false;
+    }
+  }
+
+  if (!xrActive) {
+    updateOrbitCamera();
+    // Slow auto-rotate in 3D mode when not interacting
+    if (!isDragging) rotY += 0.0015;
+    renderer.render(scene, camera);
+  } else {
+    renderer.render(scene, camera);
+  }
+});
+
+// ── Resize handler ────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Init ──────────────────────────────────────────────────
+scene.background = new THREE.Color(0x0a0a0a);
+
+// Check AR support and update tab label
+checkARSupport().then(supported => {
+  if (!supported) {
+    document.getElementById('tab-ar').textContent = 'AR (mobile)';
+  }
+});
+
+// Dismiss loader
+setTimeout(() => {
+  document.getElementById('loader').classList.add('fade');
+  setTimeout(() => document.getElementById('loader').style.display = 'none', 700);
+}, 1200);
+</script>
+</body>
+</html>

@@ -240,6 +240,25 @@
   }
   #placed-indicator.show { opacity: 1; }
 
+  /* ── AR debug readout (helps diagnose on-device) ─────── */
+  #ar-debug {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 210;
+    font-size: 0.7rem;
+    letter-spacing: .05em;
+    color: var(--gray-20);
+    background: rgba(10,10,10,.7);
+    padding: 6px 12px;
+    border-radius: 3px;
+    display: none;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  #ar-debug.show { display: block; }
+
   /* ── Fonts ───────────────────────────────────── */
   @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 </style>
@@ -297,6 +316,9 @@
 
 <!-- PLACED INDICATOR -->
 <div id="placed-indicator">Model placed — walk around to explore</div>
+
+<!-- AR DEBUG READOUT -->
+<div id="ar-debug"></div>
 
 <!-- CONTROLS -->
 <div id="controls">
@@ -608,8 +630,7 @@ async function setMode(mode) {
     const supported = await checkARSupport();
     if (supported) {
       document.getElementById('start-ar-btn').classList.add('show');
-      document.getElementById('ar-hint').textContent = 'Point camera at a flat surface';
-      document.getElementById('reticle-overlay').classList.add('visible');
+      document.getElementById('ar-hint').textContent = 'Tap below to start the AR camera';
     } else {
       document.getElementById('no-ar-msg').classList.add('show');
       document.getElementById('ar-hint').textContent = 'AR not supported on this device — use 3D mode';
@@ -653,8 +674,11 @@ async function startARSession() {
     hitTestSrc = await session.requestHitTestSource({ space: refSpace });
 
     document.getElementById('start-ar-btn').classList.remove('show');
-    document.getElementById('ar-hint').textContent = 'Move phone to detect surface · Tap to place';
-    document.getElementById('reticle-overlay').classList.add('visible');
+    document.getElementById('ar-hint').textContent = 'Move phone slowly to scan for a surface…';
+    // Real reticle visibility is now driven by actual hit-test results
+    // in the render loop below — not shown statically here.
+    document.getElementById('reticle-overlay').classList.remove('visible');
+    document.getElementById('ar-debug').classList.add('show');
 
     session.addEventListener('end', () => {
       xrActive = false;
@@ -670,12 +694,16 @@ async function startARSession() {
 
   } catch (err) {
     console.error('AR session error:', err);
-    document.getElementById('ar-hint').textContent = 'Could not start AR — try reloading in Chrome on Android';
+    document.getElementById('ar-hint').textContent = 'Could not start AR: ' + (err && err.message ? err.message : 'unknown error');
   }
 }
 
 function onARSelect() {
-  if (!reticleMesh.visible) return;
+  if (!reticleMesh.visible) {
+    // Give feedback instead of silently ignoring the tap
+    document.getElementById('ar-hint').textContent = 'No surface locked yet — keep scanning, then tap';
+    return;
+  }
 
   if (!modelPlaced) {
     // Clone the arch model at the reticle position
@@ -700,14 +728,23 @@ renderer.setAnimationLoop((timestamp, frame) => {
   if (frame && xrActive && hitTestSrc) {
     const refSpace = renderer.xr.getReferenceSpace();
     const hits     = frame.getHitTestResults(hitTestSrc);
+    const dbg      = document.getElementById('ar-debug');
 
     if (hits.length > 0 && !modelPlaced) {
       const pose = hits[0].getPose(refSpace);
       reticleMesh.visible = true;
       reticleMesh.matrix.fromArray(pose.transform.matrix);
       reticleMesh.matrix.decompose(reticleMesh.position, reticleMesh.quaternion, reticleMesh.scale);
+
+      // Reflect real tracking state in the UI (this was previously static/fake)
+      document.getElementById('reticle-overlay').classList.add('visible');
+      document.getElementById('ar-hint').textContent = 'Surface found — tap to place';
+      if (dbg) dbg.textContent = `hits: ${hits.length} · surface locked`;
     } else if (!modelPlaced) {
       reticleMesh.visible = false;
+      document.getElementById('reticle-overlay').classList.remove('visible');
+      document.getElementById('ar-hint').textContent = 'Move phone slowly to scan for a surface…';
+      if (dbg) dbg.textContent = `hits: 0 · still scanning — try a textured, well-lit floor`;
     }
   }
 

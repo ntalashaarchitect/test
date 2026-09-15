@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AR Viewer — Ntalasha Architects</title>
+<title>AR Viewer — Ntalasharchitects</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,12 +16,15 @@
     --gray-40: #6b6b6b;
     --gray-20: #b0b0b0;
     --white:   #f5f5f3;
+
+    --font-main: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
   }
 
   body {
     background: var(--black);
     color: var(--white);
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-main);
+    font-weight: 400;
     overflow: hidden;
     height: 100vh;
     width: 100vw;
@@ -40,8 +43,9 @@
   }
 
   .ar-logo {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: .9rem;
+    font-family: var(--font-main);
+    font-size: 1.05rem;
+    font-weight: 600;
     letter-spacing: .18em;
     text-transform: uppercase;
     color: var(--white);
@@ -49,7 +53,8 @@
   }
 
   #project-name {
-    font-size: .58rem;
+    font-size: 0.75rem;
+    font-weight: 500;
     letter-spacing: .28em;
     text-transform: uppercase;
     color: var(--gray-20);
@@ -59,12 +64,13 @@
     background: none;
     border: 1px solid var(--gray-60);
     color: var(--gray-20);
-    font-size: .6rem;
+    font-size: 0.8rem;
+    font-weight: 500;
     letter-spacing: .18em;
     text-transform: uppercase;
     padding: 8px 16px;
     cursor: pointer;
-    font-family: 'DM Mono', monospace;
+    font-family: var(--font-main);
     transition: background .2s, color .2s;
   }
   #close-btn:hover { background: var(--white); color: var(--black); }
@@ -99,8 +105,9 @@
 
   .mode-tab {
     padding: 10px 24px;
-    font-family: 'DM Mono', monospace;
-    font-size: .58rem;
+    font-family: var(--font-main);
+    font-size: 0.75rem;
+    font-weight: 500;
     letter-spacing: .2em;
     text-transform: uppercase;
     cursor: pointer;
@@ -115,7 +122,8 @@
   }
 
   #ar-hint {
-    font-size: .58rem;
+    font-size: 0.75rem;
+    font-weight: 500;
     letter-spacing: .18em;
     text-transform: uppercase;
     color: var(--gray-40);
@@ -147,8 +155,9 @@
   /* ── AR session button ───────────────────────── */
   #start-ar-btn {
     padding: 14px 32px;
-    font-family: 'DM Mono', monospace;
-    font-size: .65rem;
+    font-family: var(--font-main);
+    font-size: 0.85rem;
+    font-weight: 500;
     letter-spacing: .22em;
     text-transform: uppercase;
     cursor: pointer;
@@ -186,7 +195,8 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .loader-text {
-    font-size: .6rem;
+    font-size: 0.8rem;
+    font-weight: 500;
     letter-spacing: .28em;
     text-transform: uppercase;
     color: var(--gray-40);
@@ -210,6 +220,7 @@
 
   /* ── Placed indicator ────────────────────────── */
   #placed-indicator {
+    font-weight: 500;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -217,7 +228,7 @@
     background: rgba(10,10,10,.85);
     border: 1px solid var(--gray-60);
     padding: 14px 28px;
-    font-size: .6rem;
+    font-size: 0.8rem;
     letter-spacing: .22em;
     text-transform: uppercase;
     color: var(--white);
@@ -230,7 +241,7 @@
   #placed-indicator.show { opacity: 1; }
 
   /* ── Fonts ───────────────────────────────────── */
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Mono:wght@300;400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
 </style>
 </head>
 <body>
@@ -251,8 +262,8 @@
     <polyline points="34,28 34,33 29,33"/>
     <polyline points="19,33 14,33 14,28"/>
   </svg>
-  <p style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--white)">AR Not Available</p>
-  <p style="font-size:.65rem;line-height:1.9;color:var(--gray-40);max-width:300px">
+  <p style="font-family:var(--font-main);font-size:2.1rem;font-weight:400;color:var(--white)">AR Not Available</p>
+  <p style="font-size:0.85rem;line-height:1.9;color:var(--gray-40);max-width:300px">
     WebXR AR requires a compatible Android device with Chrome, or iOS with a WebXR-enabled browser.
     You are viewing the 3D model in desktop/orbit mode instead.
   </p>
@@ -264,7 +275,7 @@
 
 <!-- HEADER -->
 <div id="ar-header">
-  <a class="ar-logo" href="#">Ntalasha Architects</a>
+  <a class="ar-logo" href="#">Ntalasharchitects</a>
   <span id="project-name">Loading…</span>
   <button id="close-btn" onclick="goBackToSite()">✕ Close</button>
 </div>
@@ -299,7 +310,7 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════
-//  Ntalasha Architects — AR Viewer
+//  Ntalasharchitects — AR Viewer
 //  Modes:
 //    3D  — Three.js orbit controls (works everywhere)
 //    AR  — WebXR immersive-ar with hit-test + surface placement
@@ -313,7 +324,7 @@ function goBackToSite() {
   } else if (document.referrer) {
     window.location.href = document.referrer;
   } else {
-    window.location.href = 'Ntalasha_Architects.html';
+    window.location.href = 'Ntalasharchitects.html';
   }
 }
 

@@ -3,9 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ntalasha Architects — Lusaka, Zambia</title>
+<title>Ntalasharchitects — Lusaka, Zambia</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  Typography: Montserrat only, site-wide. Hierarchy is built with weight,
+  not multiple typefaces — light (300) for large display headlines, regular
+  (400) for body copy, medium (500) for small uppercase tracked labels, and
+  semibold (600) for the nav logo / brand mark.
+-->
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -19,15 +25,17 @@
   --g10:     #d8d8d8;
   --white:   #f5f5f3;
   --accent:  #e8e8e4;
+
+  --font-main: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
 }
 
-html { scroll-behavior: auto; }
+html { scroll-behavior: auto; font-size: 16px; }
 
 body {
   background: var(--black);
   color: var(--white);
-  font-family: 'DM Mono', monospace;
-  font-weight: 300;
+  font-family: var(--font-main);
+  font-weight: 400;
   overflow: hidden;
   height: 100vh;
 }
@@ -90,13 +98,24 @@ body {
   background: transparent;
 }
 .nav-logo {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.15rem;
-  font-weight: 500;
-  letter-spacing: .18em;
+  font-family: var(--font-main);
+  font-size: 1.7rem;
+  font-weight: 600;
+  letter-spacing: .15em;
   text-transform: uppercase;
   color: var(--white);
   text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+/* If a CMS swaps the text logo for an <img>, force a sane display size
+   regardless of the uploaded file's native pixel dimensions. */
+.nav-logo img {
+  height: 42px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  display: block;
 }
 .nav-links {
   display: flex;
@@ -104,7 +123,8 @@ body {
   list-style: none;
 }
 .nav-links a {
-  font-size: .65rem;
+  font-size: 0.85rem;
+  font-weight: 500;
   letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--g20);
@@ -135,17 +155,18 @@ body {
 }
 #preloader.fade-out { opacity: 0; pointer-events: none; }
 #preloader-brand {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(1rem, 2.5vw, 1.4rem);
-  font-weight: 300;
-  letter-spacing: .38em;
+  font-family: var(--font-main);
+  font-size: clamp(1.15rem, 2.8vw, 1.6rem);
+  font-weight: 400;
+  letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--g40);
   opacity: 0;
   animation: fadeUp .8s ease .4s forwards;
 }
 #preloader-status {
-  font-size: .52rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--g60);
@@ -190,8 +211,9 @@ body {
 #compass-svg circle:first-child { transition: stroke .25s ease; }
 #compass.scrolling #compass-svg circle:first-child { stroke: #888; }
 #compass-label {
-  font-size: .52rem;
-  letter-spacing: .28em;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--g40);
   white-space: nowrap;
@@ -201,40 +223,53 @@ body {
 #compass.scrolling #compass-label { color: var(--g20); }
 
 /* ── FIRST-VISIT HINT ─────────────────────────── */
+/* Bottom toast — deliberately kept clear of the hero copy (left/centre)
+   and the compass (bottom-centre) so nothing ever overlaps it. Starts
+   hidden; JS fades it in only after the preloader and compass have
+   fully settled (see showHint()). */
 #hint-overlay {
-  position: fixed; inset: 0; z-index: 400;
+  position: fixed;
+  left: 50%; bottom: 112px;
+  transform: translateX(-50%);
+  z-index: 401;
   display: flex; align-items: center; justify-content: center;
-  pointer-events: none; opacity: 1;
-  transition: opacity .8s ease;
+  pointer-events: none; opacity: 0;
+  transition: opacity .6s ease, transform .6s ease;
 }
-#hint-overlay.gone { opacity: 0; }
+#hint-overlay.visible { opacity: 1; }
+#hint-overlay.gone { opacity: 0; transform: translateX(-50%) translateY(8px); }
 .hint-pill {
   background: rgba(18,18,18,.9);
   border: 1px solid var(--g60);
   backdrop-filter: blur(10px);
-  padding: 16px 28px;
+  padding: 14px 24px;
   display: flex; align-items: center; gap: 14px;
+  white-space: nowrap;
 }
 .hint-pill svg { width: 18px; height: 18px; color: var(--g20); flex-shrink: 0; }
 .hint-text {
-  font-size: .6rem;
-  letter-spacing: .2em;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--g20);
-  line-height: 1.7;
+  line-height: 1.6;
 }
 .hint-text span {
   display: block;
-  font-size: .52rem;
+  font-size: 0.66rem;
+  letter-spacing: .1em;
   color: var(--g40);
+  margin-top: 2px;
 }
 
 /* ── BUTTONS ──────────────────────────────────── */
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
   padding: 14px 28px;
-  font-family: 'DM Mono', monospace;
-  font-size: .65rem;
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  font-weight: 500;
   letter-spacing: .2em;
   text-transform: uppercase;
   text-decoration: none;
@@ -313,14 +348,15 @@ body {
   width: 100%;
 }
 .hero-tag {
-  font-size: .6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
   letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--g20);
   margin-bottom: 24px;
 }
 .hero-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-main);
   font-size: clamp(3.2rem, 6vw, 6.5rem);
   font-weight: 300;
   line-height: 1.05;
@@ -329,8 +365,8 @@ body {
   margin-bottom: 28px;
 }
 .hero-sub {
-  font-size: .72rem;
-  line-height: 1.8;
+  font-size: 0.95rem;
+  line-height: 1.65;
   color: var(--g20);
   max-width: 380px;
   margin-bottom: 40px;
@@ -339,7 +375,7 @@ body {
   position: absolute;
   right: 48px; bottom: 40px; z-index: 2;
   display: flex; align-items: center; gap: 12px;
-  font-size: .58rem;
+  font-size: 0.75rem;
   letter-spacing: .25em;
   text-transform: uppercase;
   color: var(--g40);
@@ -350,7 +386,10 @@ body {
 #about { background: var(--white); color: var(--black); }
 .about-inner { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
 .about-photo {
-  background-image: url('src/images/about founder.jpg');
+  /* background-image is set by JS (initAdaptiveBackgrounds) so the site
+     can load whichever image format is actually present — avif, webp,
+     jpg, etc. — without hardcoding an extension. */
+  background-color: var(--g80);
   background-size: cover;
   background-position: top center;
   filter: grayscale(100%);
@@ -367,14 +406,15 @@ body {
   padding: 80px 64px;
 }
 .section-label {
-  font-size: .58rem;
-  letter-spacing: .32em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: .26em;
   text-transform: uppercase;
   color: var(--g40);
   margin-bottom: 20px;
 }
 .section-title {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: var(--font-main);
   font-size: clamp(2.2rem, 3.5vw, 3.8rem);
   font-weight: 300;
   line-height: 1.1;
@@ -382,8 +422,8 @@ body {
   color: var(--black);
 }
 .body-text {
-  font-size: .72rem;
-  line-height: 1.9;
+  font-size: 0.95rem;
+  line-height: 1.65;
   color: var(--g60);
   max-width: 440px;
   margin-bottom: 32px;
@@ -406,20 +446,20 @@ body {
   margin-top: 48px;
 }
 .service-card {
-  background: var(--g90);
+  background: var(--white);
   padding: 36px 28px;
   display: flex; flex-direction: column; gap: 16px;
   transition: background .25s;
   cursor: default;
 }
-.service-card:hover { background: var(--g80); }
-.service-icon { width: 36px; height: 36px; color: var(--g20); }
+.service-card:hover { background: var(--accent); }
+.service-icon { width: 36px; height: 36px; color: var(--g60); }
 .service-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem; font-weight: 400;
-  color: var(--white); line-height: 1.2;
+  font-family: var(--font-main);
+  font-size: 1.25rem; font-weight: 500;
+  color: var(--black); line-height: 1.2;
 }
-.service-desc { font-size: .63rem; line-height: 1.8; color: var(--g40); }
+.service-desc { font-size: 0.85rem; font-weight: 400; line-height: 1.65; color: var(--g60); }
 
 /* ── PROJECTS ─────────────────────────────────── */
 #projects { background: var(--black); }
@@ -463,12 +503,12 @@ body {
 }
 .project-tile:hover .project-tile-overlay { opacity: 1; }
 .tile-category {
-  font-size: .55rem; letter-spacing: .25em;
+  font-size: 0.72rem; font-weight: 500; letter-spacing: .25em;
   text-transform: uppercase; color: var(--g20); margin-bottom: 6px;
 }
 .tile-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem; font-weight: 400; color: var(--white);
+  font-family: var(--font-main);
+  font-size: 1.15rem; font-weight: 500; color: var(--white);
 }
 .tile-ar-controls {
   display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;
@@ -476,8 +516,8 @@ body {
 .tile-ar-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px;
-  font-family: 'DM Mono', monospace;
-  font-size: .52rem; letter-spacing: .18em; text-transform: uppercase;
+  font-family: var(--font-main);
+  font-size: 0.7rem; font-weight: 500; letter-spacing: .18em; text-transform: uppercase;
   cursor: pointer; border: none;
   background: rgba(245,245,243,.12); color: var(--white);
   backdrop-filter: blur(6px);
@@ -488,7 +528,7 @@ body {
 .ar-badge {
   position: absolute; top: 14px; right: 14px;
   background: rgba(10,10,10,.75); border: 1px solid var(--g60);
-  padding: 4px 10px; font-size: .48rem; letter-spacing: .22em;
+  padding: 4px 10px; font-size: 0.68rem; font-weight: 500; letter-spacing: .22em;
   text-transform: uppercase; color: var(--g20);
   backdrop-filter: blur(6px); pointer-events: none;
 }
@@ -500,7 +540,10 @@ body {
   width: 100%; height: 100%;
 }
 .contact-map {
-  background-image: url('src/images/zambia map.jpg');
+  /* background-image is set by JS (initAdaptiveBackgrounds) so the site
+     can load whichever image format is actually present — avif, webp,
+     jpg, etc. — without hardcoding an extension. */
+  background-color: var(--g10);
   background-size: cover;
   background-position: center;
   filter: grayscale(100%);
@@ -519,7 +562,7 @@ body {
 .contact-details { display: flex; flex-direction: column; gap: 18px; margin: 28px 0 40px; }
 .contact-row {
   display: flex; align-items: center; gap: 14px;
-  font-size: .68rem; color: var(--g60);
+  font-size: 0.92rem; color: var(--g60);
 }
 .contact-row svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--g40); }
 .contact-row a { color: var(--g60); text-decoration: none; }
@@ -527,15 +570,15 @@ body {
 .form-row { display: flex; gap: 12px; margin-bottom: 12px; }
 .field { flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .field label {
-  font-size: .55rem; letter-spacing: .22em;
+  font-size: 0.72rem; font-weight: 500; letter-spacing: .22em;
   text-transform: uppercase; color: var(--g40);
 }
 .field input, .field textarea {
   background: transparent;
   border: 1px solid var(--g10);
   padding: 11px 14px;
-  font-family: 'DM Mono', monospace;
-  font-size: .68rem;
+  font-family: var(--font-main);
+  font-size: 0.92rem;
   color: var(--black);
   outline: none; resize: none;
   transition: border-color .2s;
@@ -543,32 +586,38 @@ body {
 .field input:focus, .field textarea:focus { border-color: var(--g60); }
 .field textarea { height: 80px; }
 
-/* ── FOOTER STRIP ─────────────────────────────── */
-.footer-strip {
-  position: fixed;
-  bottom: 52px; right: 48px;
-  z-index: 99;
-  font-size: .58rem;
-  letter-spacing: .2em;
+/* ── SITE CREDIT (end of page) ───────────────── */
+.site-credit {
+  display: inline-block;
+  margin-top: 40px;
+  padding-top: 16px;
+  border-top: 1px solid var(--g10);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--g60);
+  color: var(--g40);
+  text-decoration: none;
+  transition: color .2s;
 }
+.site-credit:hover { color: var(--black); }
 
 #toast.show { transform: translateX(-50%) translateY(0); }
 
 </style>
+<link rel="icon" href="favicon.ico">
 </head>
 <body>
 
 <!-- PRELOADER -->
 <div id="preloader">
-  <p id="preloader-brand">Ntalasha Architects</p>
+  <p id="preloader-brand">Ntalasharchitects</p>
   <p id="preloader-status">Loading experience…</p>
 </div>
 
 <!-- NAV -->
 <nav id="nav" class="nav-hidden" style="opacity:0;transition:opacity .6s ease .2s">
-  <a class="nav-logo" href="#">Ntalasha Architects</a>
+  <a class="nav-logo" href="#"><img src="src/images/logo.png" alt="Ntalasharchitects" style="height:32px;vertical-align:middle;"></a>
   <ul class="nav-links">
     <li><a onclick="goTo(0)">Home</a></li>
     <li><a onclick="goTo(1)">About</a></li>
@@ -607,10 +656,10 @@ body {
     <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(135,28,28)"/>
     <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(225,28,28)"/>
     <line x1="28" y1="2.5" x2="28" y2="5" stroke="#2a2a2a" stroke-width=".8" transform="rotate(315,28,28)"/>
-    <text x="28" y="13.5" text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#b0b0b0">N</text>
-    <text x="43"  y="29.5" text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#3a3a3a">E</text>
-    <text x="28" y="46"   text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#3a3a3a">S</text>
-    <text x="13"  y="29.5" text-anchor="middle" font-family="'DM Mono',monospace" font-size="4.5" fill="#3a3a3a">W</text>
+    <text x="28" y="13.5" text-anchor="middle" font-family="'Montserrat',sans-serif" font-size="4.5" fill="#b0b0b0">N</text>
+    <text x="43"  y="29.5" text-anchor="middle" font-family="'Montserrat',sans-serif" font-size="4.5" fill="#3a3a3a">E</text>
+    <text x="28" y="46"   text-anchor="middle" font-family="'Montserrat',sans-serif" font-size="4.5" fill="#3a3a3a">S</text>
+    <text x="13"  y="29.5" text-anchor="middle" font-family="'Montserrat',sans-serif" font-size="4.5" fill="#3a3a3a">W</text>
     <g id="compass-needle" style="transform-origin:28px 28px">
       <polygon points="28,10 31,28 28,25 25,28" fill="#f5f5f3"/>
       <polygon points="28,46 31,28 28,31 25,28" fill="#3a3a3a"/>
@@ -629,16 +678,14 @@ body {
     <section class="panel" id="hero">
       <div class="hero-video-wrap">
         <!-- Still fallback (right side) -->
-        <img class="hero-bg-img" src="src/images/hero background.jpg"
-             alt="Ntalasha Architects"
-             onerror="this.style.opacity='0'"/>
+        <img class="hero-bg-img" data-img-base="src/images/hero background" data-fallback="hide"
+             alt="Ntalasharchitects"/>
         <!--
           Hero video (right side, reveals over the still on load)
           Replace src/video/hero reel.mp4 and src/video/hero reel.webm
         -->
         <video class="hero-video" id="hero-vid"
                autoplay muted loop playsinline
-               poster="src/images/hero background.jpg"
                oncanplay="this.classList.add('loaded')">
           <source src="src/video/hero reel.webm" type="video/webm">
           <source src="src/video/hero reel.mp4"  type="video/mp4">
@@ -646,7 +693,7 @@ body {
       </div>
 
       <div class="hero-content">
-        <p class="hero-tag">Architecture · Lusaka, Zambia</p>
+        <p class="hero-tag">Architecture · Designed With Intention</p>
         <h1 class="hero-title">Space.<br>Craft.<br>Purpose.</h1>
         <p class="hero-sub">We design built environments that elevate daily life — from intimate residences to landmark civic structures across Zambia and beyond.</p>
         <div style="display:flex;gap:14px;flex-wrap:wrap">
@@ -671,20 +718,20 @@ body {
         <div class="about-text">
           <p class="section-label">About the Practice</p>
           <h2 class="section-title" style="color:var(--black)">Architecture with intention.</h2>
-          <p class="body-text">Ntalasha Architects is a Lusaka-based studio committed to contextual design — buildings that respond to climate, culture, and community. We partner with clients from first sketch to final handover, ensuring every decision serves both beauty and utility.</p>
+          <p class="body-text">Ntalasharchitects is a Lusaka-based studio committed to contextual design — buildings that respond to climate, culture, and community. We partner with clients from first sketch to final handover, ensuring every decision serves both beauty and utility.</p>
           <p class="body-text" style="margin-top:-16px">Our approach is collaborative, rigorous, and rooted in the belief that exceptional architecture is accessible — not a luxury reserved for the few.</p>
           <div style="display:flex;gap:32px;margin-top:8px">
             <div>
-              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--black);line-height:1">80<span style="font-size:1.2rem;color:var(--g40)">+</span></div>
-              <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Projects</div>
+              <div style="font-family:var(--font-main);font-size:2.6rem;font-weight:400;color:var(--black);line-height:1">80<span style="font-size:1.2rem;color:var(--g40)">+</span></div>
+              <div style="font-size:0.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Projects</div>
             </div>
             <div>
-              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--black);line-height:1">12<span style="font-size:1.2rem;color:var(--g40)">+</span></div>
-              <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Awards</div>
+              <div style="font-family:var(--font-main);font-size:2.6rem;font-weight:400;color:var(--black);line-height:1">6</div>
+              <div style="font-size:0.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Countries Served</div>
             </div>
             <div>
-              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:300;color:var(--black);line-height:1">100<span style="font-size:1.2rem;color:var(--g40)">%</span></div>
-              <div style="font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Client Satisfaction</div>
+              <div style="font-family:var(--font-main);font-size:2.6rem;font-weight:400;color:var(--black);line-height:1">100<span style="font-size:1.2rem;color:var(--g40)">%</span></div>
+              <div style="font-size:0.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Client Satisfaction</div>
             </div>
           </div>
         </div>
@@ -763,13 +810,12 @@ body {
 
           <!-- Project 1 — Residential Villa -->
           <div class="project-tile">
-            <img src="src/images/project 1.jpg" alt="Residential Villa"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <img data-img-base="src/images/project 1" data-fallback="placeholder" alt="Residential Villa">
             <div class="img-ph" style="display:none"></div>
             <span class="ar-badge">AR + 3D</span>
             <div class="project-tile-overlay">
-              <span class="tile-category">Institutional</span>
-              <span class="tile-name">Institutional Complex</span>
+              <span class="tile-category">Residential</span>
+              <span class="tile-name">Residential Villa</span>
               <div class="tile-ar-controls">
                 <button class="tile-ar-btn" onclick="launchAR('ar1','Residential Villa',event)">
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -794,8 +840,7 @@ body {
 
           <!-- Project 2 — Corporate HQ -->
           <div class="project-tile">
-            <img src="src/images/project 2.jpg" alt="Corporate HQ"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <img data-img-base="src/images/project 2" data-fallback="placeholder" alt="Corporate HQ">
             <div class="img-ph" style="display:none"></div>
             <span class="ar-badge">AR + 3D</span>
             <div class="project-tile-overlay">
@@ -825,8 +870,7 @@ body {
 
           <!-- Project 3 — Mixed-Use -->
           <div class="project-tile">
-            <img src="src/images/project 3.jpg" alt="Mixed-Use Development"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <img data-img-base="src/images/project 3" data-fallback="placeholder" alt="Mixed-Use Development">
             <div class="img-ph" style="display:none"></div>
             <span class="ar-badge">AR + 3D</span>
             <div class="project-tile-overlay">
@@ -856,8 +900,7 @@ body {
 
           <!-- Project 4 -->
           <div class="project-tile">
-            <img src="src/images/project 4.jpg" alt="Institutional Complex"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <img data-img-base="src/images/project 4" data-fallback="placeholder" alt="Institutional Complex">
             <div class="img-ph" style="display:none"></div>
             <div class="project-tile-overlay">
               <span class="tile-category">Institutional</span>
@@ -867,8 +910,7 @@ body {
 
           <!-- Project 5 -->
           <div class="project-tile">
-            <img src="src/images/project 5.jpg" alt="Landscape Masterplan"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <img data-img-base="src/images/project 5" data-fallback="placeholder" alt="Landscape Masterplan">
             <div class="img-ph" style="display:none"></div>
             <div class="project-tile-overlay">
               <span class="tile-category">Landscape</span>
@@ -878,8 +920,7 @@ body {
 
           <!-- Project 6 -->
           <div class="project-tile">
-            <img src="src/images/project 6.jpg" alt="Interior Design Suite"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+            <img data-img-base="src/images/project 6" data-fallback="placeholder" alt="Interior Design Suite">
             <div class="img-ph" style="display:none"></div>
             <div class="project-tile-overlay">
               <span class="tile-category">Interior</span>
@@ -904,14 +945,14 @@ body {
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
                 <path d="M2 2.5a1.5 1.5 0 011.5-1.5h1a1.5 1.5 0 011.5 1.5v.5a1.5 1.5 0 01-1.5 1.5H4a6 6 0 006 6v-.5A1.5 1.5 0 0111.5 10h.5a1.5 1.5 0 011.5 1.5v1A1.5 1.5 0 0112 14C6.5 14 2 9.5 2 4v-1.5z"/>
               </svg>
-              <a href="tel:tel:+260977869624">+260 977 869 624</a>
+              <a href="tel:+260977869624">+260 977 869 624</a>
             </div>
             <div class="contact-row">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
                 <rect x="1" y="3" width="14" height="10" rx="1.5"/>
                 <polyline points="1,3 8,9.5 15,3"/>
               </svg>
-              <a href="mailto:mailto:natalashaarchitect@gmail.com">natalashaarchitect@gmail.com</a>
+              <a href="mailto:info@ntalasharchitects.com">info@ntalasharchitects.com</a>
             </div>
             <div class="contact-row">
               <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
@@ -926,25 +967,27 @@ body {
                 <path d="M5.5 5.5s-.5 1 0 2.5 2.5 2.5 2.5 2.5 1-.5 1.5-.5"/>
                 <path d="M10 10.5l1.5 1"/>
               </svg>
-              <a href="https://wa.me/https://wa.me/260977869624" target="_blank">WhatsApp Us</a>
+              <a href="https://wa.me/260977869624" target="_blank">WhatsApp Us</a>
             </div>
           </div>
 
           <div class="form-row">
             <div class="field">
               <label>Name</label>
-              <input type="text" placeholder="Your name">
+              <input type="text" id="contact-name" placeholder="Your name">
             </div>
             <div class="field">
               <label>Email</label>
-              <input type="email" placeholder="your@email.com">
+              <input type="email" id="contact-email" placeholder="your@email.com">
             </div>
           </div>
           <div class="field" style="margin-bottom:16px">
             <label>Message</label>
-            <textarea placeholder="Tell us about your project…"></textarea>
+            <textarea id="contact-message" placeholder="Tell us about your project…"></textarea>
           </div>
           <button class="btn btn-solid" style="width:fit-content" onclick="handleSend()">Send Message</button>
+
+          <a class="site-credit" href="https://www.erthdot.com" target="_blank" rel="noopener noreferrer">Website powered by Erthdot Studio</a>
         </div>
       </div>
     </section>
@@ -952,13 +995,86 @@ body {
   </div><!-- #track -->
 </div><!-- #scroll-root -->
 
-<!-- FOOTER STRIP -->
-<div class="footer-strip">© 2025 Ntalasha Architects · Lusaka, Zambia</div>
-
 <!-- TOAST -->
 <div id="toast">Message sent — we'll be in touch.</div>
 
 <script>
+/* ════════════════════════════════════════════════════
+   ADAPTIVE IMAGE LOADING
+   Images in src/images/ are AVIF-first. The site tries each
+   format in order and falls back automatically — no extension
+   is hardcoded in the markup, so swapping asset formats never
+   requires editing this file.
+════════════════════════════════════════════════════ */
+const IMG_EXTS = ['avif', 'webp', 'jpg', 'jpeg', 'png'];
+
+function tryImgSrc(img) {
+  const idx = parseInt(img.dataset.extIndex || '0', 10);
+  if (idx >= IMG_EXTS.length) {
+    if (img.dataset.fallback === 'placeholder' && img.nextElementSibling) {
+      img.style.display = 'none';
+      img.nextElementSibling.style.display = 'block';
+    } else {
+      img.style.opacity = '0';
+    }
+    return;
+  }
+  img.dataset.extIndex = idx + 1;
+  img.src = img.dataset.imgBase + '.' + IMG_EXTS[idx];
+}
+
+function initAdaptiveImages() {
+  document.querySelectorAll('img[data-img-base]').forEach(img => {
+    img.addEventListener('error', () => tryImgSrc(img));
+    tryImgSrc(img);
+  });
+}
+
+function setAdaptiveBackground(el, basePath, extIndex) {
+  extIndex = extIndex || 0;
+  if (!el || extIndex >= IMG_EXTS.length) return;
+  const test = new Image();
+  test.onload  = () => { el.style.backgroundImage = `url('${basePath}.${IMG_EXTS[extIndex]}')`; };
+  test.onerror = () => setAdaptiveBackground(el, basePath, extIndex + 1);
+  test.src = basePath + '.' + IMG_EXTS[extIndex];
+}
+
+function initAdaptiveBackgrounds() {
+  setAdaptiveBackground(document.querySelector('.about-photo'), 'src/images/about founder');
+  setAdaptiveBackground(document.querySelector('.contact-map'), 'src/images/zambia map');
+}
+
+function setAdaptiveVideoPoster(videoEl, basePath, extIndex) {
+  extIndex = extIndex || 0;
+  if (!videoEl || extIndex >= IMG_EXTS.length) return;
+  const test = new Image();
+  test.onload  = () => { videoEl.poster = `${basePath}.${IMG_EXTS[extIndex]}`; };
+  test.onerror = () => setAdaptiveVideoPoster(videoEl, basePath, extIndex + 1);
+  test.src = basePath + '.' + IMG_EXTS[extIndex];
+}
+
+initAdaptiveImages();
+initAdaptiveBackgrounds();
+setAdaptiveVideoPoster(document.getElementById('hero-vid'), 'src/images/hero background');
+
+/* Hero video: belt-and-suspenders playback.
+   oncanplay alone can silently never fire if a source 404s or uses an
+   unsupported codec, leaving the video invisible with no clue why —
+   this adds an explicit play() call and a console warning on failure. */
+(function initHeroVideo() {
+  const vid = document.getElementById('hero-vid');
+  if (!vid) return;
+  const reveal = () => vid.classList.add('loaded');
+  vid.addEventListener('canplay', reveal);
+  vid.addEventListener('loadeddata', reveal);
+  vid.addEventListener('error', () => {
+    console.warn('Hero video failed to load — check that src/video/hero reel.mp4 (and .webm) exist next to index.html with those exact names.');
+  });
+  const tryPlay = () => vid.play().catch(err => console.warn('Hero video play() blocked:', err));
+  if (vid.readyState >= 2) tryPlay();
+  else vid.addEventListener('loadeddata', tryPlay, { once: true });
+})();
+
 /* ════════════════════════════════════════════════════
    PRELOADER
 ════════════════════════════════════════════════════ */
@@ -989,6 +1105,7 @@ function runPreloaderOut() {
     nav.classList.add('nav-visible');
     setTimeout(() => { if (typeof compassTick === 'function') requestAnimationFrame(compassTick); }, 950);
     setTimeout(() => { preloader.style.display = 'none'; compass.style.zIndex = '110'; }, 800);
+    setTimeout(() => { if (typeof showHint === 'function') showHint(); }, 1550);
   }, 520);
 }
 
@@ -1009,10 +1126,17 @@ const navEl      = document.getElementById('nav');
 
 const panelLabels = ['N — Home','NE — About','E — Services','SE — Projects','S — Contact'];
 
-let hintDismissed = false, compassDeg = 0, targetDeg = 0;
+let hintDismissed = false, hintShown = false, compassDeg = 0, targetDeg = 0;
+function showHint() {
+  if (hintShown || hintDismissed) return;
+  hintShown = true;
+  hintOvl.classList.add('visible');
+  setTimeout(dismissHint, 4500); // auto-hide a few seconds after it appears if the user hasn't scrolled
+}
 function dismissHint() {
   if (hintDismissed) return;
   hintDismissed = true;
+  hintOvl.classList.remove('visible');
   hintOvl.classList.add('gone');
   setTimeout(() => { hintOvl.style.display = 'none'; }, 900);
 }
@@ -1081,9 +1205,14 @@ function updateUI(x) {
   else track.style.filter = '';
 }
 
-/* ── RAF tick with sound on rest ── */
-let soundPending = false;
-let audioCtx = null, scrollAudio = null, lastPlayTime = 0, scrollSoundTimer = null;
+/* ── DIAL / CLICKWHEEL SCROLL SOUND ──
+   Fires a short mechanical "tick" every TICK_DISTANCE pixels of travel —
+   the same idea as the old iPod clickwheel (and the iOS picker-wheel sound
+   modeled on it): many rapid ticks while spinning fast, a few slow ticks
+   as it settles. Distance-based, not a single sound on stop. */
+const TICK_DISTANCE = 42; // px of scroll travel between ticks
+let lastTickX = 0;
+let audioCtx = null, scrollAudio = null, lastPlayTime = 0;
 
 function initAudio() {
   if (audioCtx) return;
@@ -1091,37 +1220,43 @@ function initAudio() {
   /*
     SCROLL CLICK SOUND
     Reference: src/sound/scroll click.mp3  (also src/sound/scroll click.ogg as fallback)
-    iPod-style soft mechanical click that plays each time scrolling comes to rest.
-    If the file is absent the Web Audio synth below fires automatically.
+    A short, sharp mechanical tick — modeled on the old iPod clickwheel /
+    the iOS picker-wheel sound — that fires each time the scroll travels
+    TICK_DISTANCE pixels. If the file is absent the Web Audio synth below
+    fires automatically.
   */
   scrollAudio = new Audio('src/sound/scroll click.mp3');
-  scrollAudio.volume = 0.22;
+  scrollAudio.volume = 0.18;
   scrollAudio.preload = 'auto';
 }
 
 function playSynthScroll() {
   if (!audioCtx) return;
   const now = audioCtx.currentTime;
-  if (now - lastPlayTime < 0.18) return;
+  if (now - lastPlayTime < 0.05) return; // lets ticks come fast during a quick spin
   lastPlayTime = now;
-  /* Low body thud */
+
+  /* Pitched blip — the "click" of a detent passing */
   const o1 = audioCtx.createOscillator(), g1 = audioCtx.createGain();
-  o1.type = 'sine';
-  o1.frequency.setValueAtTime(90, now);
-  o1.frequency.exponentialRampToValueAtTime(30, now + 0.12);
-  g1.gain.setValueAtTime(0.18, now);
-  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+  o1.type = 'square';
+  o1.frequency.setValueAtTime(2200, now);
+  o1.frequency.exponentialRampToValueAtTime(900, now + 0.013);
+  g1.gain.setValueAtTime(0.13, now);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
   o1.connect(g1); g1.connect(audioCtx.destination);
-  o1.start(now); o1.stop(now + 0.15);
-  /* High silk tick */
-  const o2 = audioCtx.createOscillator(), g2 = audioCtx.createGain();
-  o2.type = 'sine';
-  o2.frequency.setValueAtTime(3200, now);
-  o2.frequency.exponentialRampToValueAtTime(800, now + 0.06);
-  g2.gain.setValueAtTime(0.06, now);
-  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
-  o2.connect(g2); g2.connect(audioCtx.destination);
-  o2.start(now); o2.stop(now + 0.08);
+  o1.start(now); o1.stop(now + 0.022);
+
+  /* Tiny noise burst — the mechanical "clack" texture */
+  const dur = 0.014;
+  const buf  = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2.5);
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buf;
+  const ng = audioCtx.createGain();
+  ng.gain.setValueAtTime(0.05, now);
+  noise.connect(ng); ng.connect(audioCtx.destination);
+  noise.start(now);
 }
 
 function playScrollSound() {
@@ -1129,7 +1264,7 @@ function playScrollSound() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   if (scrollAudio && scrollAudio.readyState >= 2) {
     const now = performance.now() / 1000;
-    if (now - lastPlayTime < 0.18) return;
+    if (now - lastPlayTime < 0.05) return;
     lastPlayTime = now;
     scrollAudio.currentTime = 0;
     scrollAudio.play().catch(() => playSynthScroll());
@@ -1147,17 +1282,18 @@ function tick() {
     track.style.transform = `translateX(${-currentX}px)`;
     track.style.filter    = '';
     updateUI(currentX);
-    if (soundPending) {
-      soundPending = false;
-      clearTimeout(scrollSoundTimer);
-      scrollSoundTimer = setTimeout(playScrollSound, 40);
-    }
     rafId = null;
     return;
   }
   currentX += diff * EASE;
   track.style.transform = `translateX(${-currentX}px)`;
   updateUI(currentX);
+
+  if (Math.abs(currentX - lastTickX) >= TICK_DISTANCE) {
+    lastTickX = currentX;
+    playScrollSound();
+  }
+
   rafId = requestAnimationFrame(tick);
 }
 
@@ -1167,7 +1303,6 @@ function startRaf() { if (!rafId) rafId = requestAnimationFrame(tick); }
 window.addEventListener('wheel', e => {
   e.preventDefault();
   onScrollStart();
-  soundPending = true;
   let delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
   if (e.deltaMode === 1) delta *= 28;
   if (e.deltaMode === 2) delta *= 400;
@@ -1191,7 +1326,6 @@ window.addEventListener('touchmove', e => {
   lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   velocity  = delta * 1.2;
   targetX   = clamp(targetX + delta, 0, maxX);
-  soundPending = true;
   startRaf();
 }, { passive: true });
 
@@ -1199,8 +1333,8 @@ window.addEventListener('touchend', () => { lastTouch = null; });
 
 window.addEventListener('keydown', e => {
   const step = window.innerWidth * 0.6;
-  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { targetX = clamp(targetX + step, 0, maxX); onScrollStart(); soundPending = true; }
-  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { targetX = clamp(targetX - step, 0, maxX); onScrollStart(); soundPending = true; }
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { targetX = clamp(targetX + step, 0, maxX); onScrollStart(); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { targetX = clamp(targetX - step, 0, maxX); onScrollStart(); }
   startRaf();
 });
 
@@ -1211,7 +1345,6 @@ function goTo(idx) {
   for (let i = 0; i < idx; i++) cumX += panels[i].offsetWidth;
   velocity = 0;
   targetX  = clamp(cumX, 0, maxX);
-  soundPending = true;
   navShow();
   navHideDelayed();
   startRaf();
@@ -1228,7 +1361,6 @@ document.body.style.overflow = 'hidden';
 document.body.style.height   = '100vh';
 window.addEventListener('resize', init);
 init();
-setTimeout(dismissHint, 4000);
 window.addEventListener('mousemove', () => { navShow(); navHideDelayed(); });
 
 /* ── Init audio on first gesture ── */
@@ -1246,9 +1378,31 @@ function launchAR(modelId, name, event, skipAR) {
     'width=480,height=820,resizable=yes,scrollbars=no');
 }
 
-/* ── Contact form ── */
+/* ── Contact form ──
+   No backend on a static/GitHub Pages site, so "Send" builds a mailto:
+   link from the filled-in fields and hands off to the visitor's own
+   mail client, addressed to the info@ inbox shown on the page. */
 function handleSend() {
+  const name    = (document.getElementById('contact-name')    || {}).value || '';
+  const email   = (document.getElementById('contact-email')   || {}).value || '';
+  const message = (document.getElementById('contact-message') || {}).value || '';
+
+  if (!name.trim() || !email.trim() || !message.trim()) {
+    const t = document.getElementById('toast');
+    t.textContent = 'Please fill in your name, email and message first.';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+    return;
+  }
+
+  const to      = 'info@ntalasharchitects.com';
+  const subject = `New project inquiry from ${name}`;
+  const body    = `${message}\n\n— ${name} (${email})`;
+  window.location.href =
+    `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
   const t = document.getElementById('toast');
+  t.textContent = 'Opening your email app to send this…';
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 4000);
 }
@@ -1259,20 +1413,29 @@ function handleSend() {
  All file names use spaces only, no special characters
 ════════════════════════════════════════════════════
 
+IMAGES ARE FORMAT-AGNOSTIC:
+Every image is referenced by its base name only (no extension) via
+data-img-base / initAdaptiveBackgrounds() above. On load, the site
+tries each format in this order and uses whichever file exists:
+   .avif → .webp → .jpg → .jpeg → .png
+Drop in an AVIF (recommended, smallest file size), a WebP, or a
+plain JPG/PNG with the same base name below and it will be picked
+up automatically — no HTML edits required.
+
 FOLDER STRUCTURE:
 src/
 ├── images/
-│   ├── hero background.jpg      Hero still fallback (1920x1080)
+│   ├── hero background.avif     Hero still fallback (1920x1080)
 │   │                             Right-side exterior or aerial shot
-│   ├── about founder.jpg        Founder portrait (800x1100 tall crop)
+│   ├── about founder.avif       Founder portrait (800x1100 tall crop)
 │   │                             Face near top, full-bleed vertical
-│   ├── project 1.jpg            Residential Villa exterior (800x600)
-│   ├── project 2.jpg            Corporate HQ exterior (800x600)
-│   ├── project 3.jpg            Mixed-Use Development render (800x600)
-│   ├── project 4.jpg            Institutional Complex exterior (800x600)
-│   ├── project 5.jpg            Landscape Masterplan aerial (800x600)
-│   ├── project 6.jpg            Interior Design Suite (800x600)
-│   └── zambia map.jpg           Contact section (1200x900)
+│   ├── project 1.avif           Residential Villa exterior (800x600)
+│   ├── project 2.avif           Corporate HQ exterior (800x600)
+│   ├── project 3.avif           Mixed-Use Development render (800x600)
+│   ├── project 4.avif           Institutional Complex exterior (800x600)
+│   ├── project 5.avif           Landscape Masterplan aerial (800x600)
+│   ├── project 6.avif           Interior Design Suite (800x600)
+│   └── zambia map.avif          Contact section (1200x900)
 │                                 Lusaka / Zambia map or aerial
 │
 ├── video/

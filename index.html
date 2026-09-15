@@ -604,6 +604,151 @@ body {
 
 #toast.show { transform: translateX(-50%) translateY(0); }
 
+/* ══════════════════════════════════════════════════════════════
+   MOBILE / TABLET (≤860px)
+   The desktop layout is a fixed-viewport horizontal panel-scroller —
+   it doesn't have a fluid unit to fall back to on a phone, so below
+   this width we switch the whole page to a normal, vertically
+   stacked, natively-scrolling document instead of trying to squeeze
+   the same panels sideways. JS hands off the same way (see
+   isMobile() in the script below).
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 860px) {
+
+  html, body {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  #scroll-root {
+    position: static;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  #track {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .panel, .panel--wide {
+    flex: 1 1 auto;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* These all narrate progress through the horizontal scroll —
+     meaningless once the page scrolls the normal way. */
+  #progress, #compass, #hint-overlay { display: none; }
+
+  /* ── NAV — pinned, always visible, no more show/hide-on-scroll ── */
+  #nav {
+    position: sticky;
+    top: 0;
+    padding: 16px 20px;
+    transform: none !important;
+    opacity: 1 !important;
+    background: rgba(10,10,10,.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .nav-logo img { height: 26px; }
+  .nav-links { gap: 12px 16px; flex-wrap: wrap; justify-content: flex-end; }
+  .nav-links a { font-size: 0.66rem; letter-spacing: .1em; }
+
+  /* ── HERO — image/video becomes a fixed-height band, not a 62%-width
+     absolute slab; text moves below it in normal flow ── */
+  #hero { flex-direction: column; }
+  .hero-video-wrap {
+    position: relative;
+    inset: auto;
+    height: 46vh;
+    min-height: 300px;
+  }
+  .hero-video-wrap::after {
+    background: linear-gradient(to bottom, rgba(10,10,10,0) 55%, rgba(10,10,10,.92) 100%);
+  }
+  .hero-bg-img, .hero-video { width: 100%; }
+  .hero-content {
+    position: relative;
+    padding: 36px 24px 48px;
+    max-width: 100%;
+  }
+  .hero-title { font-size: clamp(2.3rem, 10vw, 3.2rem); }
+  .hero-sub { max-width: 100%; }
+  .hero-scroll-hint { display: none; }
+
+  /* ── ABOUT ── */
+  .about-inner { grid-template-columns: 1fr; }
+  .about-photo { height: 280px; }
+  .about-photo::after { background: linear-gradient(to top, rgba(245,245,243,.9), transparent 45%); }
+  .about-text { padding: 44px 24px; }
+  .about-stats { flex-wrap: wrap; row-gap: 20px; }
+
+  /* ── SERVICES — the 4-col grid was forcing tiny, squeezed cards;
+     2 columns (1 on phones) with normal padding reads properly ── */
+  .services-inner { padding: 56px 20px; }
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .service-card { padding: 24px 18px; gap: 12px; }
+  .service-icon { width: 28px; height: 28px; }
+  .service-name { font-size: 1.05rem; }
+  .service-desc { font-size: 0.82rem; }
+
+  /* ── PROJECTS / AR / images ──
+     Root cause of "stretched" images: tiles had no height of their
+     own, only 1/2 of a 100vh grid row inside a 160vw-wide panel —
+     an aspect-ratio gives every tile a real, stable shape at any
+     screen width, so object-fit: cover crops correctly instead of
+     squashing. Root cause of AR buttons being "off": the overlay
+     only appeared on :hover, which never fires on a touchscreen —
+     it's now shown permanently so the controls are reachable. */
+  .projects-inner { flex-direction: column; height: auto; }
+  .projects-sidebar {
+    flex: 0 0 auto;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--g80);
+    padding: 44px 24px 32px;
+  }
+  .projects-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: none;
+  }
+  .project-tile { aspect-ratio: 4 / 3; }
+  .project-tile-overlay {
+    opacity: 1;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(10,10,10,.94) 0%, rgba(10,10,10,.25) 60%, transparent 100%);
+  }
+  .tile-category { font-size: 0.6rem; }
+  .tile-name { font-size: 0.9rem; }
+  .tile-ar-controls { gap: 6px; margin-top: 8px; }
+  .tile-ar-btn { padding: 8px 11px; font-size: 0.64rem; letter-spacing: .08em; }
+  .ar-badge { top: 8px; right: 8px; padding: 3px 8px; font-size: 0.58rem; }
+
+  /* ── CONTACT ── */
+  .contact-inner { grid-template-columns: 1fr; }
+  .contact-map { height: 220px; }
+  .contact-form-area { padding: 44px 24px; }
+  .form-row { flex-direction: column; gap: 0; }
+}
+
+@media (max-width: 480px) {
+  .services-grid { grid-template-columns: 1fr; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .project-tile { aspect-ratio: 16 / 10; }
+  .hero-title { font-size: clamp(2.1rem, 11vw, 2.7rem); }
+  .nav-links { gap: 8px 12px; }
+  .nav-links a { font-size: 0.62rem; }
+}
+
 </style>
 <link rel="icon" href="favicon.ico">
 </head>
@@ -720,7 +865,7 @@ body {
           <h2 class="section-title" style="color:var(--black)">Architecture with intention.</h2>
           <p class="body-text">Ntalasharchitects is a Lusaka-based studio committed to contextual design — buildings that respond to climate, culture, and community. We partner with clients from first sketch to final handover, ensuring every decision serves both beauty and utility.</p>
           <p class="body-text" style="margin-top:-16px">Our approach is collaborative, rigorous, and rooted in the belief that exceptional architecture is accessible — not a luxury reserved for the few.</p>
-          <div style="display:flex;gap:32px;margin-top:8px">
+          <div class="about-stats" style="display:flex;gap:32px;margin-top:8px">
             <div>
               <div style="font-family:var(--font-main);font-size:2.6rem;font-weight:400;color:var(--black);line-height:1">80<span style="font-size:1.2rem;color:var(--g40)">+</span></div>
               <div style="font-size:0.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--g40);margin-top:4px">Projects</div>
@@ -1126,6 +1271,11 @@ const navEl      = document.getElementById('nav');
 
 const panelLabels = ['N — Home','NE — About','E — Services','SE — Projects','S — Contact'];
 
+/* Below this width the site stacks panels vertically and scrolls the
+   normal, native way (see the matching @media block in <style>) —
+   the wheel/touch-drag panel engine below is for desktop only. */
+function isMobile() { return window.matchMedia('(max-width: 860px)').matches; }
+
 let hintDismissed = false, hintShown = false, compassDeg = 0, targetDeg = 0;
 function showHint() {
   if (hintShown || hintDismissed) return;
@@ -1301,6 +1451,7 @@ function startRaf() { if (!rafId) rafId = requestAnimationFrame(tick); }
 
 /* ── Input listeners ── */
 window.addEventListener('wheel', e => {
+  if (isMobile()) return; // native vertical scroll on mobile/tablet
   e.preventDefault();
   onScrollStart();
   let delta = e.deltaY !== 0 ? e.deltaY : e.deltaX;
@@ -1313,13 +1464,14 @@ window.addEventListener('wheel', e => {
 }, { passive: false });
 
 window.addEventListener('touchstart', e => {
+  if (isMobile()) return; // native vertical scroll on mobile/tablet
   lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   velocity  = 0;
   onScrollStart();
 }, { passive: true });
 
 window.addEventListener('touchmove', e => {
-  if (!lastTouch) return;
+  if (isMobile() || !lastTouch) return;
   const dx = lastTouch.x - e.touches[0].clientX;
   const dy = lastTouch.y - e.touches[0].clientY;
   const delta = Math.abs(dx) >= Math.abs(dy) ? dx : dy * 0.8;
@@ -1332,6 +1484,7 @@ window.addEventListener('touchmove', e => {
 window.addEventListener('touchend', () => { lastTouch = null; });
 
 window.addEventListener('keydown', e => {
+  if (isMobile()) return;
   const step = window.innerWidth * 0.6;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { targetX = clamp(targetX + step, 0, maxX); onScrollStart(); }
   if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   { targetX = clamp(targetX - step, 0, maxX); onScrollStart(); }
@@ -1339,7 +1492,14 @@ window.addEventListener('keydown', e => {
 });
 
 /* ── goTo ── */
+const panelIds = ['hero', 'about', 'services', 'projects', 'contact'];
+
 function goTo(idx) {
+  if (isMobile()) {
+    const el = document.getElementById(panelIds[idx]);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
   const panels = Array.from(track.children);
   let cumX = 0;
   for (let i = 0; i < idx; i++) cumX += panels[i].offsetWidth;
@@ -1351,14 +1511,26 @@ function goTo(idx) {
 }
 
 function init() {
+  if (isMobile()) {
+    // Hand control back to the browser: panels stack and the page
+    // scrolls natively (see @media max-width:860px in <style>), so the
+    // kinetic engine and its "lock the body" trick both step aside.
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    document.body.style.overflow = '';
+    document.body.style.height   = '';
+    track.style.transform = '';
+    track.style.filter    = '';
+    velocity = 0; targetX = 0; currentX = 0; maxX = 0;
+    return;
+  }
+  document.body.style.overflow = 'hidden';
+  document.body.style.height   = '100vh';
   syncMax();
   targetX  = clamp(targetX,  0, maxX);
   currentX = clamp(currentX, 0, maxX);
   startRaf();
 }
 
-document.body.style.overflow = 'hidden';
-document.body.style.height   = '100vh';
 window.addEventListener('resize', init);
 init();
 window.addEventListener('mousemove', () => { navShow(); navHideDelayed(); });

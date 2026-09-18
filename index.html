@@ -722,6 +722,21 @@ body {
     grid-template-rows: none;
   }
   .project-tile { aspect-ratio: 4 / 3; }
+
+  /* Desktop reveals color via :hover, which never fires on touch.
+     On mobile, .in-view is toggled by an IntersectionObserver as each
+     tile scrolls through the viewport, so the image fades to full
+     color while visible and back to grayscale once scrolled past. */
+  .project-tile img,
+  .project-tile .img-ph {
+    filter: grayscale(100%);
+    transition: transform .5s ease, filter .6s ease;
+  }
+  .project-tile.in-view img,
+  .project-tile.in-view .img-ph {
+    filter: grayscale(0%);
+    transform: scale(1.03);
+  }
   .project-tile-overlay {
     opacity: 1;
     padding: 12px;
@@ -1533,6 +1548,29 @@ function init() {
 
 window.addEventListener('resize', init);
 init();
+
+/* ── Mobile scroll color-reveal for project tiles ──
+   Desktop shows color via :hover; touch devices have no hover, so on
+   mobile we fade each tile into color as it scrolls through the
+   viewport and back to grayscale once it scrolls past — same visual
+   payoff, triggered by scroll position instead of the cursor. */
+(function initScrollColorReveal() {
+  const tiles = document.querySelectorAll('.project-tile');
+  if (!tiles.length || !('IntersectionObserver' in window)) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      entry.target.classList.toggle('in-view', entry.isIntersecting);
+    });
+  }, {
+    // Fires once a tile is meaningfully on screen, not just at the
+    // very edge, and un-fires once it's mostly scrolled past.
+    threshold: 0.3,
+    rootMargin: '-10% 0px -10% 0px'
+  });
+
+  tiles.forEach(tile => observer.observe(tile));
+})();
 window.addEventListener('mousemove', () => { navShow(); navHideDelayed(); });
 
 /* ── Init audio on first gesture ── */
@@ -1546,8 +1584,12 @@ function launchAR(modelId, name, event, skipAR) {
   if (event) event.stopPropagation();
   const encoded = encodeURIComponent(name);
   const mode    = skipAR ? '&mode=3d' : '';
-  window.open('ar-viewer.html?model=' + modelId + '&name=' + encoded + mode, '_blank',
-    'width=480,height=820,resizable=yes,scrollbars=no');
+  // Open as a normal full tab, NOT a sized popup window. WebXR immersive-ar
+  // sessions (camera passthrough) can silently fail to render — showing a
+  // black screen even though the session "starts" — when launched inside a
+  // constrained popup window on Android Chrome. A plain new tab gives the
+  // session a proper top-level browsing context.
+  window.open('ar-viewer.html?model=' + modelId + '&name=' + encoded + mode, '_blank');
 }
 
 /* ── Contact form ──
